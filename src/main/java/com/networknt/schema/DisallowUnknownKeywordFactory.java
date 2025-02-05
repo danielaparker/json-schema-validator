@@ -33,9 +33,14 @@ public class DisallowUnknownKeywordFactory implements KeywordFactory {
     }
 
     private static class Holder {
-        private static DisallowUnknownKeywordFactory INSTANCE = new DisallowUnknownKeywordFactory();
+        private static final DisallowUnknownKeywordFactory INSTANCE = new DisallowUnknownKeywordFactory();
     }
 
+    /**
+     * Gets the instance of {@link DisallowUnknownKeywordFactory}.
+     *
+     * @return the keyword factory
+     */
     public static DisallowUnknownKeywordFactory getInstance() {
         return Holder.INSTANCE;
     }

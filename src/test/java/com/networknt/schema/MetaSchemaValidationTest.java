@@ -30,7 +30,7 @@ import com.networknt.schema.serialization.JsonMapperFactory;
 /**
  * Tests for meta schema validating a schema.
  */
-public class MetaSchemaValidationTest {
+class MetaSchemaValidationTest {
     /**
      * Validates a OpenAPI 3.1 schema using the OpenAPI 3.1 meta schema.
      *
@@ -40,8 +40,7 @@ public class MetaSchemaValidationTest {
     void oas31() throws IOException {
         try (InputStream input = MetaSchemaValidationTest.class.getResourceAsStream("/schema/oas/3.1/petstore.json")) {
             JsonNode inputData = JsonMapperFactory.getInstance().readTree(input);
-            SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-            config.setPathType(PathType.JSON_POINTER);
+            SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
             JsonSchema schema = JsonSchemaFactory
                     .getInstance(VersionFlag.V202012,
                             builder -> builder.schemaMappers(schemaMappers -> schemaMappers

@@ -18,7 +18,7 @@ import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class JsonWalkTest {
+class JsonWalkTest {
 
     private JsonSchema jsonSchema;
 
@@ -29,28 +29,28 @@ public class JsonWalkTest {
     private static final String CUSTOM_KEYWORD = "custom-keyword";
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         setupSchema();
     }
 
     private void setupSchema() {
         final JsonMetaSchema metaSchema = getJsonMetaSchema();
         // Create Schema.
-        SchemaValidatorsConfig schemaValidatorsConfig = new SchemaValidatorsConfig();
-        schemaValidatorsConfig.addKeywordWalkListener(new AllKeywordListener());
-        schemaValidatorsConfig.addKeywordWalkListener(ValidatorTypeCode.REF.getValue(), new RefKeywordListener());
-        schemaValidatorsConfig.addKeywordWalkListener(ValidatorTypeCode.PROPERTIES.getValue(),
+        SchemaValidatorsConfig.Builder schemaValidatorsConfigBuilder = SchemaValidatorsConfig.builder();
+        schemaValidatorsConfigBuilder.keywordWalkListener(new AllKeywordListener());
+        schemaValidatorsConfigBuilder.keywordWalkListener(ValidatorTypeCode.REF.getValue(), new RefKeywordListener());
+        schemaValidatorsConfigBuilder.keywordWalkListener(ValidatorTypeCode.PROPERTIES.getValue(),
                 new PropertiesKeywordListener());
         final JsonSchemaFactory schemaFactory = JsonSchemaFactory
                 .builder(JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V201909)).metaSchema(metaSchema)
                 .build();
-        this.jsonSchema = schemaFactory.getSchema(getSchema(), schemaValidatorsConfig);
+        this.jsonSchema = schemaFactory.getSchema(getSchema(), schemaValidatorsConfigBuilder.build());
         // Create another Schema.
-        SchemaValidatorsConfig schemaValidatorsConfig1 = new SchemaValidatorsConfig();
-        schemaValidatorsConfig1.addKeywordWalkListener(ValidatorTypeCode.REF.getValue(), new RefKeywordListener());
-        schemaValidatorsConfig1.addKeywordWalkListener(ValidatorTypeCode.PROPERTIES.getValue(),
+        SchemaValidatorsConfig.Builder schemaValidatorsConfig1Builder = SchemaValidatorsConfig.builder();
+        schemaValidatorsConfig1Builder.keywordWalkListener(ValidatorTypeCode.REF.getValue(), new RefKeywordListener());
+        schemaValidatorsConfig1Builder.keywordWalkListener(ValidatorTypeCode.PROPERTIES.getValue(),
                 new PropertiesKeywordListener());
-        this.jsonSchema1 = schemaFactory.getSchema(getSchema(), schemaValidatorsConfig1);
+        this.jsonSchema1 = schemaFactory.getSchema(getSchema(), schemaValidatorsConfig1Builder.build());
     }
 
     private JsonMetaSchema getJsonMetaSchema() {
@@ -60,7 +60,7 @@ public class JsonWalkTest {
     }
 
     @Test
-    public void testWalk() throws IOException {
+    void testWalk() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         ValidationResult result = jsonSchema.walk(
                 objectMapper.readTree(getClass().getClassLoader().getResourceAsStream("data/walk-data.json")), false);
@@ -79,7 +79,7 @@ public class JsonWalkTest {
     }
 
     @Test
-    public void testWalkWithDifferentListeners() throws IOException {
+    void testWalkWithDifferentListeners() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         // This instance of schema contains all listeners.
         ValidationResult result = jsonSchema.walk(
@@ -140,13 +140,13 @@ public class JsonWalkTest {
          */
         private static class CustomValidator extends AbstractJsonValidator {
 
-            public CustomValidator(SchemaLocation schemaLocation, JsonNodePath evaluationPath, JsonNode schemaNode) {
+            CustomValidator(SchemaLocation schemaLocation, JsonNodePath evaluationPath, JsonNode schemaNode) {
                 super(schemaLocation, evaluationPath, new CustomKeyword(), schemaNode);
             }
 
             @Override
             public Set<ValidationMessage> validate(ExecutionContext executionContext, JsonNode node, JsonNode rootNode, JsonNodePath instanceLocation) {
-                return new TreeSet<ValidationMessage>();
+                return new TreeSet<>();
             }
 
             @Override

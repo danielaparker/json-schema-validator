@@ -25,6 +25,7 @@ import com.networknt.schema.resource.SchemaLoaders;
 import com.networknt.schema.resource.SchemaMapper;
 import com.networknt.schema.resource.SchemaMappers;
 import com.networknt.schema.serialization.JsonMapperFactory;
+import com.networknt.schema.serialization.JsonNodeReader;
 import com.networknt.schema.serialization.YamlMapperFactory;
 
 import org.slf4j.Logger;
@@ -41,10 +42,12 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
 
 /**
- * Factory for building {@link JsonSchema} instances.
+ * Factory for building {@link JsonSchema} instances. The factory should be
+ * typically be created using {@link #getInstance(VersionFlag, Consumer)} and
+ * should be cached for performance.
  * <p>
- * The factory should be typically be created using
- * {@link #getInstance(VersionFlag, Consumer)}.
+ * JsonSchemaFactory instances are thread-safe provided its configuration is not
+ * modified.
  */
 public class JsonSchemaFactory {
     private static final Logger logger = LoggerFactory.getLogger(JsonSchemaFactory.class);
@@ -52,18 +55,56 @@ public class JsonSchemaFactory {
     public static class Builder {
         private ObjectMapper jsonMapper = null;
         private ObjectMapper yamlMapper = null;
+        private JsonNodeReader jsonNodeReader = null;
         private String defaultMetaSchemaIri;
-        private final ConcurrentMap<String, JsonMetaSchema> metaSchemas = new ConcurrentHashMap<String, JsonMetaSchema>();
+        private final ConcurrentMap<String, JsonMetaSchema> metaSchemas = new ConcurrentHashMap<>();
         private SchemaLoaders.Builder schemaLoadersBuilder = null;
         private SchemaMappers.Builder schemaMappersBuilder = null;
         private boolean enableSchemaCache = true;
         private JsonMetaSchemaFactory metaSchemaFactory = null;
 
+        /**
+         * Sets the json node reader to read the data.
+         * <p>
+         * If set this takes precedence over the configured json mapper and yaml mapper.
+         * <p>
+         * A location aware object reader can be created using JsonNodeReader.builder().locationAware().build().
+         *
+         * @param jsonNodeReader the object reader
+         * @return the builder
+         */
+        public Builder jsonNodeReader(JsonNodeReader jsonNodeReader) {
+            this.jsonNodeReader = jsonNodeReader;
+            return this;
+        }
+
+        /**
+         * Sets the json mapper to read the data.
+         * <p>
+         * If the object reader is set this will not be used.
+         * <p>
+         * This is deprecated use an object reader instead.
+         * 
+         * @param jsonMapper the json mapper
+         * @return the builder
+         */
+        @Deprecated
         public Builder jsonMapper(final ObjectMapper jsonMapper) {
             this.jsonMapper = jsonMapper;
             return this;
         }
 
+        /**
+         * Sets the yaml mapper to read the data.
+         * <p>
+         * If the object reader is set this will not be used.
+         * <p>
+         * This is deprecated use an object reader instead.
+         * 
+         * @param yamlMapper the yaml mapper
+         * @return the builder
+         */
+        @Deprecated
         public Builder yamlMapper(final ObjectMapper yamlMapper) {
             this.yamlMapper = yamlMapper;
             return this;
@@ -131,6 +172,7 @@ public class JsonSchemaFactory {
             return new JsonSchemaFactory(
                     jsonMapper,
                     yamlMapper,
+                    jsonNodeReader,
                     defaultMetaSchemaIri,
                     schemaLoadersBuilder,
                     schemaMappersBuilder,
@@ -143,6 +185,7 @@ public class JsonSchemaFactory {
 
     private final ObjectMapper jsonMapper;
     private final ObjectMapper yamlMapper;
+    private final JsonNodeReader jsonNodeReader;
     private final String defaultMetaSchemaIri;
     private final SchemaLoaders.Builder schemaLoadersBuilder;
     private final SchemaMappers.Builder schemaMappersBuilder;
@@ -158,6 +201,7 @@ public class JsonSchemaFactory {
     private JsonSchemaFactory(
             ObjectMapper jsonMapper,
             ObjectMapper yamlMapper,
+            JsonNodeReader jsonNodeReader,
             String defaultMetaSchemaIri,
             SchemaLoaders.Builder schemaLoadersBuilder,
             SchemaMappers.Builder schemaMappersBuilder,
@@ -174,6 +218,7 @@ public class JsonSchemaFactory {
         }
         this.jsonMapper = jsonMapper;
         this.yamlMapper = yamlMapper;
+        this.jsonNodeReader = jsonNodeReader;
         this.defaultMetaSchemaIri = defaultMetaSchemaIri;
         this.schemaLoadersBuilder = schemaLoadersBuilder;
         this.schemaMappersBuilder = schemaMappersBuilder;
@@ -265,7 +310,8 @@ public class JsonSchemaFactory {
                 .metaSchemas(blueprint.metaSchemas.values())
                 .defaultMetaSchemaIri(blueprint.defaultMetaSchemaIri)
                 .jsonMapper(blueprint.jsonMapper)
-                .yamlMapper(blueprint.yamlMapper);
+                .yamlMapper(blueprint.yamlMapper)
+                .jsonNodeReader(blueprint.jsonNodeReader);
         if (blueprint.schemaLoadersBuilder != null) {
             builder.schemaLoadersBuilder = SchemaLoaders.builder().with(blueprint.schemaLoadersBuilder);
         }
@@ -340,9 +386,16 @@ public class JsonSchemaFactory {
     private ValidationContext withMetaSchema(ValidationContext validationContext, JsonNode schemaNode) {
         JsonMetaSchema metaSchema = getMetaSchema(schemaNode, validationContext.getConfig());
         if (metaSchema != null && !metaSchema.getIri().equals(validationContext.getMetaSchema().getIri())) {
-            return new ValidationContext(metaSchema, validationContext.getJsonSchemaFactory(),
-                    validationContext.getConfig(), validationContext.getSchemaReferences(),
-                    validationContext.getSchemaResources(), validationContext.getDynamicAnchors());
+            SchemaValidatorsConfig config = validationContext.getConfig();
+            if (metaSchema.getKeywords().containsKey("discriminator") && !config.isDiscriminatorKeywordEnabled()) {
+                config = SchemaValidatorsConfig.builder(config)
+                        .discriminatorKeywordEnabled(true)
+                        .nullableKeywordEnabled(true)
+                        .build();
+            }
+            return new ValidationContext(metaSchema, validationContext.getJsonSchemaFactory(), config,
+                    validationContext.getSchemaReferences(), validationContext.getSchemaResources(),
+                    validationContext.getDynamicAnchors());
         }
         return validationContext;
     }
@@ -363,17 +416,21 @@ public class JsonSchemaFactory {
 
     protected ValidationContext createValidationContext(final JsonNode schemaNode, SchemaValidatorsConfig config) {
         final JsonMetaSchema jsonMetaSchema = getMetaSchemaOrDefault(schemaNode, config);
-        return new ValidationContext(jsonMetaSchema, this, config);
+        SchemaValidatorsConfig configResult = config;
+        if (jsonMetaSchema.getKeywords().containsKey("discriminator") && !config.isDiscriminatorKeywordEnabled()) {
+            configResult = SchemaValidatorsConfig.builder(config)
+                    .discriminatorKeywordEnabled(true)
+                    .nullableKeywordEnabled(true)
+                    .build();
+        }
+        return new ValidationContext(jsonMetaSchema, this, configResult);
     }
-    
+
     private JsonMetaSchema getMetaSchema(final JsonNode schemaNode, SchemaValidatorsConfig config) {
         final JsonNode iriNode = schemaNode.get("$schema");
         if (iriNode != null && iriNode.isTextual()) {
             JsonMetaSchema result = metaSchemas.computeIfAbsent(normalizeMetaSchemaUri(iriNode.textValue()),
                     id -> loadMetaSchema(id, config));
-            if (result.getKeywords().containsKey("discriminator")) {
-                config.setOpenAPI3StyleDiscriminators(true);
-            }
             return result;
         }
         return null;
@@ -382,7 +439,7 @@ public class JsonSchemaFactory {
     private JsonMetaSchema getMetaSchemaOrDefault(final JsonNode schemaNode, SchemaValidatorsConfig config) {
         final JsonNode iriNode = schemaNode.get("$schema");
         if (iriNode != null && !iriNode.isNull() && !iriNode.isTextual()) {
-            throw new JsonSchemaException("Unknown MetaSchema: " + iriNode.toString());
+            throw new JsonSchemaException("Unknown MetaSchema: " + iriNode);
         }
         final String iri = iriNode == null || iriNode.isNull() ? defaultMetaSchemaIri : iriNode.textValue();
         return getMetaSchema(iri, config);
@@ -398,9 +455,6 @@ public class JsonSchemaFactory {
     public JsonMetaSchema getMetaSchema(String iri, SchemaValidatorsConfig config) {
         String key = normalizeMetaSchemaUri(iri);
         JsonMetaSchema result =  metaSchemas.computeIfAbsent(key, id -> loadMetaSchema(id, config));
-        if (result.getKeywords().containsKey("discriminator")) {
-            config.setOpenAPI3StyleDiscriminators(true);
-        }
         return result;
     }
 
@@ -416,6 +470,31 @@ public class JsonSchemaFactory {
                 : DefaultJsonMetaSchemaFactory.getInstance().getMetaSchema(iri, this, config);
     }
 
+    JsonNode readTree(String content, InputFormat inputFormat) throws IOException {
+        if (this.jsonNodeReader == null) {
+            return getObjectMapper(inputFormat).readTree(content);
+        } else {
+            return this.jsonNodeReader.readTree(content, inputFormat);
+        }
+    }
+
+    JsonNode readTree(InputStream content, InputFormat inputFormat) throws IOException {
+        if (this.jsonNodeReader == null) {
+            return getObjectMapper(inputFormat).readTree(content);
+        } else {
+            return this.jsonNodeReader.readTree(content, inputFormat);
+        }
+    }
+
+    ObjectMapper getObjectMapper(InputFormat inputFormat) {
+        if (InputFormat.JSON.equals(inputFormat)) {
+            return getJsonMapper();
+        } else if (InputFormat.YAML.equals(inputFormat)) {
+            return getYamlMapper();
+        }
+        throw new IllegalArgumentException("Unsupported input format "+inputFormat); 
+    }
+
     /**
      * Gets the schema.
      * <p>
@@ -427,14 +506,30 @@ public class JsonSchemaFactory {
      * @return the schema
      */
     public JsonSchema getSchema(final String schema, final SchemaValidatorsConfig config) {
+        return getSchema(schema, InputFormat.JSON, config);
+    }
+
+    /**
+     * Gets the schema.
+     * <p>
+     * Using this is not recommended as there is potentially no base IRI for
+     * resolving references to the absolute IRI.
+     * 
+     * @param schema the schema data as a string
+     * @param inputFormat input format
+     * @param config the config
+     * @return the schema
+     */
+    public JsonSchema getSchema(final String schema, InputFormat inputFormat, final SchemaValidatorsConfig config) {
         try {
-            final JsonNode schemaNode = getJsonMapper().readTree(schema);
+            final JsonNode schemaNode = readTree(schema, inputFormat);
             return newJsonSchema(null, schemaNode, config);
         } catch (IOException ioe) {
             logger.error("Failed to load json schema!", ioe);
             throw new JsonSchemaException(ioe);
         }
     }
+
 
     /**
      * Gets the schema.
@@ -455,13 +550,42 @@ public class JsonSchemaFactory {
      * Using this is not recommended as there is potentially no base IRI for
      * resolving references to the absolute IRI.
      * 
+     * @param schema the schema data as a string
+     * @param inputFormat input format
+     * @return the schema
+     */
+    public JsonSchema getSchema(final String schema, InputFormat inputFormat) {
+        return getSchema(schema, inputFormat, createSchemaValidatorsConfig());
+    }
+
+    /**
+     * Gets the schema.
+     * <p>
+     * Using this is not recommended as there is potentially no base IRI for
+     * resolving references to the absolute IRI.
+     * 
      * @param schemaStream the input stream with the schema data
      * @param config the config
      * @return the schema
      */
     public JsonSchema getSchema(final InputStream schemaStream, final SchemaValidatorsConfig config) {
+        return getSchema(schemaStream, InputFormat.JSON, config);
+    }
+
+    /**
+     * Gets the schema.
+     * <p>
+     * Using this is not recommended as there is potentially no base IRI for
+     * resolving references to the absolute IRI.
+     * 
+     * @param schemaStream the input stream with the schema data
+     * @param inputFormat input format
+     * @param config the config
+     * @return the schema
+     */
+    public JsonSchema getSchema(final InputStream schemaStream, InputFormat inputFormat, final SchemaValidatorsConfig config) {
         try {
-            final JsonNode schemaNode = getJsonMapper().readTree(schemaStream);
+            final JsonNode schemaNode = readTree(schemaStream, inputFormat);
             return newJsonSchema(null, schemaNode, config);
         } catch (IOException ioe) {
             logger.error("Failed to load json schema!", ioe);
@@ -524,11 +648,11 @@ public class JsonSchemaFactory {
         return getMappedSchema(schemaUri, config);
     }
 
-    protected ObjectMapper getYamlMapper() {
+    ObjectMapper getYamlMapper() {
         return this.yamlMapper != null ? this.yamlMapper : YamlMapperFactory.getInstance();
     }
-    
-    protected ObjectMapper getJsonMapper() {
+
+    ObjectMapper getJsonMapper() {
         return this.jsonMapper != null ? this.jsonMapper : JsonMapperFactory.getInstance();
     }
 
@@ -538,19 +662,20 @@ public class JsonSchemaFactory {
      * @return the schema validators config
      */
     protected SchemaValidatorsConfig createSchemaValidatorsConfig() {
+        // Remain as constructor until constructor is removed
         return new SchemaValidatorsConfig();
     }
 
     protected JsonSchema getMappedSchema(final SchemaLocation schemaUri, SchemaValidatorsConfig config) {
         try (InputStream inputStream = this.schemaLoader.getSchema(schemaUri.getAbsoluteIri()).getInputStream()) {
             if (inputStream == null) {
-                throw new IOException("Cannot load schema at " + schemaUri.toString());
+                throw new IOException("Cannot load schema at " + schemaUri);
             }
             final JsonNode schemaNode;
             if (isYaml(schemaUri)) {
-                schemaNode = getYamlMapper().readTree(inputStream);
+                schemaNode = readTree(inputStream, InputFormat.YAML);
             } else {
-                schemaNode = getJsonMapper().readTree(inputStream);
+                schemaNode = readTree(inputStream, InputFormat.JSON);
             }
 
             final JsonMetaSchema jsonMetaSchema = getMetaSchemaOrDefault(schemaNode, config);

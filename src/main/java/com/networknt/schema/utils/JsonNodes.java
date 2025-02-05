@@ -15,12 +15,19 @@
  */
 package com.networknt.schema.utils;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+import java.io.InputStream;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonLocation;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.networknt.schema.JsonNodePath;
+import com.networknt.schema.serialization.node.JsonLocationAware;
+import com.networknt.schema.serialization.node.JsonNodeFactoryFactory;
 
 /**
  * Utility methods for JsonNode.
@@ -28,7 +35,8 @@ import com.networknt.schema.JsonNodePath;
 public class JsonNodes {
     /**
      * Gets the node found at the path.
-     * 
+     *
+     * @param <T> the type of the node
      * @param node the node
      * @param path the path
      * @return the node found at the path or null
@@ -50,7 +58,8 @@ public class JsonNodes {
 
     /**
      * Gets the node given the property or index.
-     * 
+     *
+     * @param <T> the type of the node
      * @param node the node
      * @param propertyOrIndex the property or index
      * @return the node given the property or index
@@ -58,25 +67,66 @@ public class JsonNodes {
     @SuppressWarnings("unchecked")
     public static <T extends JsonNode> T get(JsonNode node, Object propertyOrIndex) {
         JsonNode value = null;
-        if (propertyOrIndex instanceof Number) {
+        if (propertyOrIndex instanceof Number && node.isArray()) {
             value = node.get(((Number) propertyOrIndex).intValue());
         } else {
-            // In the case of string this represents an escaped json pointer and thus does not reflect the property directly
-            String unescaped = propertyOrIndex.toString();
-            if (unescaped.contains("~")) {
-                unescaped = unescaped.replace("~1", "/");
-                unescaped = unescaped.replace("~0", "~");
-            }
-            if (unescaped.contains("%")) {
-                try {
-                    unescaped = URLDecoder.decode(unescaped, StandardCharsets.UTF_8.toString());
-                } catch (UnsupportedEncodingException e) {
-                    // Do nothing
-                }
-            }
-            
-            value = node.get(unescaped);
+            value = node.get(propertyOrIndex.toString());
         }
         return (T) value;
+    }
+
+    /**
+     * Read a {@link JsonNode} from {@link String} content.
+     * 
+     * @param objectMapper the object mapper
+     * @param content the string content
+     * @param jsonNodeFactoryFactory the factory
+     * @return the json node
+     */
+    public static JsonNode readTree(ObjectMapper objectMapper, String content,
+            JsonNodeFactoryFactory jsonNodeFactoryFactory) {
+        JsonFactory factory = objectMapper.getFactory();
+        try (JsonParser parser = factory.createParser(content)) {
+            JsonNodeFactory nodeFactory = jsonNodeFactoryFactory.getJsonNodeFactory(parser);
+            ObjectReader reader = objectMapper.reader(nodeFactory);
+            JsonNode result = reader.readTree(parser);
+            return (result != null) ? result : nodeFactory.missingNode();
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Invalid input", e);
+        }
+    }
+
+    /**
+     * Read a {@link JsonNode} from an {@link InputStream}.
+     * 
+     * @param objectMapper the object mapper
+     * @param inputStream the string content
+     * @param jsonNodeFactoryFactory the factory 
+     * @return the json node
+     */
+    public static JsonNode readTree(ObjectMapper objectMapper, InputStream inputStream,
+            JsonNodeFactoryFactory jsonNodeFactoryFactory) {
+        JsonFactory factory = objectMapper.getFactory();
+        try (JsonParser parser = factory.createParser(inputStream)) {
+            JsonNodeFactory nodeFactory = jsonNodeFactoryFactory.getJsonNodeFactory(parser);
+            ObjectReader reader = objectMapper.reader(nodeFactory);
+            JsonNode result = reader.readTree(parser);
+            return (result != null) ? result : nodeFactory.missingNode();
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Invalid input", e);
+        }
+    }
+
+    /**
+     * Gets the token location of the {@link JsonNode} that implements {@link JsonLocationAware}.
+     * 
+     * @param jsonNode the node
+     * @return the JsonLocation
+     */
+    public static JsonLocation tokenLocationOf(JsonNode jsonNode) {
+        if (jsonNode instanceof JsonLocationAware) {
+            return ((JsonLocationAware) jsonNode).tokenLocation();
+        }
+        throw new IllegalArgumentException("JsonNode does not contain the location information.");
     }
 }

@@ -47,6 +47,7 @@ public class ValidationContext {
         }
         this.metaSchema = metaSchema;
         this.jsonSchemaFactory = jsonSchemaFactory;
+        // The deprecated SchemaValidatorsConfig constructor needs to remain until removed
         this.config = config == null ? new SchemaValidatorsConfig() : config;
         this.schemaReferences = schemaReferences;
         this.schemaResources = schemaResources;
@@ -106,7 +107,6 @@ public class ValidationContext {
     }
 
     public Optional<VersionFlag> activeDialect() {
-        String metaSchema = getMetaSchema().getIri();
-        return SpecVersionDetector.detectOptionalVersion(metaSchema);
+        return Optional.of(this.metaSchema.getSpecification());
     }
 }

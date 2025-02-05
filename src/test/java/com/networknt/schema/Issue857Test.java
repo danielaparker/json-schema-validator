@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import com.networknt.schema.SpecVersion.VersionFlag;
 
-public class Issue857Test {
+class Issue857Test {
     @Test
     void test() {
         String schema = "{\r\n"
@@ -48,8 +48,7 @@ public class Issue857Test {
                 + "  \"id\": \"4\"\r\n"
                 + "}";
 
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setFailFast(true);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().failFast(true).build();
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
         Set<ValidationMessage> result = factory.getSchema(schema, config).validate(input, InputFormat.JSON);
         assertTrue(result.isEmpty());

@@ -17,12 +17,12 @@ In addition, [OpenAPI](doc/openapi.md) 3 request/response validation is supporte
 
 ## JSON Schema Specification compatibility
 
-[![Supported spec](https://img.shields.io/endpoint?url=https%3A%2F%2Fbowtie.report%2Fbadges%2Fjava-json-schema-validator%2Fsupported_versions.json)](https://bowtie.report/#/implementations/java-json-schema-validator)
-[![Compliance](https://img.shields.io/endpoint?url=https%3A%2F%2Fbowtie.report%2Fbadges%2Fjava-json-schema-validator%2Fcompliance%2Fdraft2020-12.json)](https://bowtie.report/#/dialects/draft2020-12)
-[![Compliance](https://img.shields.io/endpoint?url=https%3A%2F%2Fbowtie.report%2Fbadges%2Fjava-json-schema-validator%2Fcompliance%2Fdraft2019-09.json)](https://bowtie.report/#/dialects/draft2019-09)
-[![Compliance](https://img.shields.io/endpoint?url=https%3A%2F%2Fbowtie.report%2Fbadges%2Fjava-json-schema-validator%2Fcompliance%2Fdraft7.json)](https://bowtie.report/#/dialects/draft7)
-[![Compliance](https://img.shields.io/endpoint?url=https%3A%2F%2Fbowtie.report%2Fbadges%2Fjava-json-schema-validator%2Fcompliance%2Fdraft6.json)](https://bowtie.report/#/dialects/draft6)
-[![Compliance](https://img.shields.io/endpoint?url=https%3A%2F%2Fbowtie.report%2Fbadges%2Fjava-json-schema-validator%2Fcompliance%2Fdraft4.json)](https://bowtie.report/#/dialects/draft4)
+[![Supported Dialects](https://img.shields.io/endpoint?url=https%3A%2F%2Fbowtie.report%2Fbadges%2Fjava-com.networknt-json-schema-validator%2Fsupported_versions.json)](https://bowtie.report/#/implementations/java-networknt-json-schema-validator)
+[![Draft 2020-12](https://img.shields.io/endpoint?url=https%3A%2F%2Fbowtie.report%2Fbadges%2Fjava-com.networknt-json-schema-validator%2Fcompliance%2Fdraft2020-12.json)](https://bowtie.report/#/dialects/draft2020-12)
+[![Draft 2019-09](https://img.shields.io/endpoint?url=https%3A%2F%2Fbowtie.report%2Fbadges%2Fjava-com.networknt-json-schema-validator%2Fcompliance%2Fdraft2019-09.json)](https://bowtie.report/#/dialects/draft2019-09)
+[![Draft 7](https://img.shields.io/endpoint?url=https%3A%2F%2Fbowtie.report%2Fbadges%2Fjava-com.networknt-json-schema-validator%2Fcompliance%2Fdraft7.json)](https://bowtie.report/#/dialects/draft7)
+[![Draft 6](https://img.shields.io/endpoint?url=https%3A%2F%2Fbowtie.report%2Fbadges%2Fjava-com.networknt-json-schema-validator%2Fcompliance%2Fdraft6.json)](https://bowtie.report/#/dialects/draft6)
+[![Draft 4](https://img.shields.io/endpoint?url=https%3A%2F%2Fbowtie.report%2Fbadges%2Fjava-com.networknt-json-schema-validator%2Fcompliance%2Fdraft4.json)](https://bowtie.report/#/dialects/draft4)
 
 Information on the compatibility support for each version, including known issues, can be found in the [Compatibility with JSON Schema versions](doc/compatibility.md) document.
 
@@ -40,7 +40,7 @@ The [Releases](https://github.com/networknt/json-schema-validator/releases) page
 
 ## Comparing against other implementations
 
-The [JSON Schema Validation Comparison](https://github.com/creek-service/json-schema-validation-comparison) project from Creek has an informative [Comparison of JVM based Schema Validation Implementations](https://www.creekservice.org/json-schema-validation-comparison/) which compares both the functional and performance characteristics of a number of different Java implementations. 
+The [JSON Schema Validation Comparison](https://github.com/creek-service/json-schema-validation-comparison) project from Creek has an informative [Comparison of JVM based Schema Validation Implementations](https://www.creekservice.org/json-schema-validation-comparison/) which compares both the functional and performance characteristics of a number of different Java implementations.
 * [Functional comparison](https://www.creekservice.org/json-schema-validation-comparison/functional#summary-results-table)
 * [Performance comparison](https://www.creekservice.org/json-schema-validation-comparison/performance#json-schema-test-suite-benchmark)
 
@@ -60,34 +60,26 @@ In this case this workload is using the Draft 4 specification and largely tests 
 
 If performance is an important consideration, the specific sample workloads should be benchmarked, as there are different performance characteristics when certain keywords are used. For instance the use of the `unevaluatedProperties` or `unevaluatedItems` keyword will trigger annotation collection in the related validators, such as the `properties` or `items` validators, and annotation collection will adversely affect performance.
 
-##### NetworkNT 1.3.1
+##### NetworkNT 1.4.1
 
 ```
-Benchmark                                                          Mode  Cnt       Score      Error   Units
-NetworkntBenchmark.testValidate                                   thrpt   10    6776.693 ±  115.309   ops/s
-NetworkntBenchmark.testValidate:·gc.alloc.rate                    thrpt   10     971.191 ±   16.420  MB/sec
-NetworkntBenchmark.testValidate:·gc.alloc.rate.norm               thrpt   10  165318.816 ±    0.459    B/op
-NetworkntBenchmark.testValidate:·gc.churn.G1_Eden_Space           thrpt   10     968.894 ±   51.234  MB/sec
-NetworkntBenchmark.testValidate:·gc.churn.G1_Eden_Space.norm      thrpt   10  164933.962 ± 8636.203    B/op
-NetworkntBenchmark.testValidate:·gc.churn.G1_Survivor_Space       thrpt   10       0.002 ±    0.001  MB/sec
-NetworkntBenchmark.testValidate:·gc.churn.G1_Survivor_Space.norm  thrpt   10       0.274 ±    0.218    B/op
-NetworkntBenchmark.testValidate:·gc.count                         thrpt   10      89.000             counts
-NetworkntBenchmark.testValidate:·gc.time                          thrpt   10      99.000                 ms
+Benchmark                                            Mode  Cnt      Score    Error   Units
+NetworkntBenchmark.testValidate                     thrpt   10   8352.126 ± 61.870   ops/s
+NetworkntBenchmark.testValidate:gc.alloc.rate       thrpt   10    721.296 ±  5.342  MB/sec
+NetworkntBenchmark.testValidate:gc.alloc.rate.norm  thrpt   10  90560.013 ±  0.001    B/op
+NetworkntBenchmark.testValidate:gc.count            thrpt   10     61.000           counts
+NetworkntBenchmark.testValidate:gc.time             thrpt   10     68.000               ms
 ```
 
 ###### Everit 1.14.1
 
 ```
-Benchmark                                                          Mode  Cnt       Score       Error   Units
-EveritBenchmark.testValidate                                      thrpt   10    3719.192 ±   125.592   ops/s
-EveritBenchmark.testValidate:·gc.alloc.rate                       thrpt   10    1448.208 ±    74.746  MB/sec
-EveritBenchmark.testValidate:·gc.alloc.rate.norm                  thrpt   10  449621.927 ±  7400.825    B/op
-EveritBenchmark.testValidate:·gc.churn.G1_Eden_Space              thrpt   10    1446.397 ±    79.919  MB/sec
-EveritBenchmark.testValidate:·gc.churn.G1_Eden_Space.norm         thrpt   10  449159.799 ± 18614.931    B/op
-EveritBenchmark.testValidate:·gc.churn.G1_Survivor_Space          thrpt   10       0.001 ±     0.001  MB/sec
-EveritBenchmark.testValidate:·gc.churn.G1_Survivor_Space.norm     thrpt   10       0.364 ±     0.391    B/op
-EveritBenchmark.testValidate:·gc.count                            thrpt   10     133.000              counts
-EveritBenchmark.testValidate:·gc.time                             thrpt   10     148.000                  ms
+Benchmark                                            Mode  Cnt       Score    Error   Units
+EveritBenchmark.testValidate                        thrpt   10    3775.453 ± 44.023   ops/s
+EveritBenchmark.testValidate:gc.alloc.rate          thrpt   10    1667.345 ± 19.437  MB/sec
+EveritBenchmark.testValidate:gc.alloc.rate.norm     thrpt   10  463104.030 ±  0.003    B/op
+EveritBenchmark.testValidate:gc.count               thrpt   10     140.000           counts
+EveritBenchmark.testValidate:gc.time                thrpt   10     158.000               ms
 ```
 
 #### Functionality
@@ -96,25 +88,25 @@ This implementation is tested against the [JSON Schema Test Suite](https://githu
 
 | Implementations | Overall                                                                 | DRAFT_03                                                          | DRAFT_04                                                            | DRAFT_06                                                           | DRAFT_07                                                               | DRAFT_2019_09                                                        | DRAFT_2020_12                                                          |
 |-----------------|-------------------------------------------------------------------------|-------------------------------------------------------------------|---------------------------------------------------------------------|--------------------------------------------------------------------|------------------------------------------------------------------------|----------------------------------------------------------------------|------------------------------------------------------------------------|
-| NetworkNt       | pass: r:4703 (100.0%) o:2369 (100.0%)<br>fail: r:0 (0.0%) o:1 (0.0%)    |                                                                   | pass: r:600 (100.0%) o:251 (100.0%)<br>fail: r:0 (0.0%) o:0 (0.0%)  | pass: r:796 (100.0%) o:318 (100.0%)<br>fail: r:0 (0.0%) o:0 (0.0%) | pass: r:880 (100.0%) o:541 (100.0%)<br>fail: r:0 (0.0%) o:0 (0.0%)     | pass: r:1201 (100.0%) o:625 (100.0%)<br>fail: r:0 (0.0%) o:0 (0.0%)  | pass: r:1226 (100.0%) o:634 (99.8%)<br>fail: r:0 (0.0%) o:1 (0.2%)     |
+| NetworkNt       | pass: r:4803 (100.0%) o:2372 (100.0%)<br>fail: r:0 (0.0%) o:0 (0.0%)    |                                                                   | pass: r:610 (100.0%) o:251 (100.0%)<br>fail: r:0 (0.0%) o:0 (0.0%)  | pass: r:822 (100.0%) o:318 (100.0%)<br>fail: r:0 (0.0%) o:0 (0.0%) | pass: r:906 (100.0%) o:541 (100.0%)<br>fail: r:0 (0.0%) o:0 (0.0%)     | pass: r:1220 (100.0%) o:625 (100.0%)<br>fail: r:0 (0.0%) o:0 (0.0%)  | pass: r:1245 (100.0%) o:637 (100.0%)<br>fail: r:0 (0.0%) o:0 (0.0%)    |
 
-* Note that this uses the ECMA 262 Validator option turned on for the `pattern` tests.
+* Note that this uses the `JoniRegularExpressionFactory` for the `pattern` and `format` `regex` tests.
 
 #### Jackson Parser
 
-This library uses [Jackson](https://github.com/FasterXML/jackson) which is a Java JSON parser that is widely used in other projects. If you are already using the Jackson parser in your project, it is natural to choose this library over others for schema validation. 
+This library uses [Jackson](https://github.com/FasterXML/jackson) which is a Java JSON parser that is widely used in other projects. If you are already using the Jackson parser in your project, it is natural to choose this library over others for schema validation.
 
 #### YAML Support
 
-The library works with JSON and YAML on both schema definitions and input data. 
+The library works with JSON and YAML on both schema definitions and input data.
 
 #### OpenAPI Support
 
-The OpenAPI 3.0 specification is using JSON schema to validate the request/response, but there are some differences. With a configuration file, you can enable the library to work with OpenAPI 3.0 validation. 
+The OpenAPI 3.0 specification is using JSON schema to validate the request/response, but there are some differences. With a configuration file, you can enable the library to work with OpenAPI 3.0 validation.
 
 #### Minimal Dependencies
 
-Following the design principle of the Light Platform, this library has minimal dependencies to ensure there are no dependency conflicts when using it. 
+Following the design principle of the Light Platform, this library has minimal dependencies to ensure there are no dependency conflicts when using it.
 
 ##### Required Dependencies
 
@@ -157,13 +149,22 @@ The following are the optional dependencies that may be required for certain opt
 These are not automatically included and setting the relevant option without adding the library will result in a `ClassNotFoundException`.
 
 ```xml
-<!-- This is required when setting setEcma262Validator(true)  -->
 <dependency>
     <!-- Used to validate ECMA 262 regular expressions -->
+    <!-- Approximately 50 MB in dependencies -->
+    <!-- GraalJSRegularExpressionFactory -->
+    <groupId>org.graalvm.js</groupId>
+    <artifactId>js</artifactId>
+    <version>${version.graaljs}</version>
+</dependency>
+
+<dependency>
+    <!-- Used to validate ECMA 262 regular expressions -->
+    <!-- Approximately 2 MB in dependencies -->
+    <!-- JoniRegularExpressionFactory -->
     <groupId>org.jruby.joni</groupId>
     <artifactId>joni</artifactId>
     <version>${version.joni}</version>
-    <optional>true</optional>
 </dependency>
 ```
 
@@ -203,7 +204,7 @@ The Ethlo Time dependency can be excluded if accurate validation of the `date-ti
 
 #### Community
 
-This library is very active with a lot of contributors. New features and bug fixes are handled quickly by the team members. Because it is an essential dependency of the [light-4j](https://github.com/networknt/light-4j) framework in the same GitHub organization, it will be evolved and maintained along with the framework. 
+This library is very active with a lot of contributors. New features and bug fixes are handled quickly by the team members. Because it is an essential dependency of the [light-4j](https://github.com/networknt/light-4j) framework in the same GitHub organization, it will be evolved and maintained along with the framework.
 
 ## Prerequisite
 
@@ -213,15 +214,15 @@ The library supports Java 8 and up. If you want to build from the source code, y
 
 ### Adding the dependency
 
-This package is available on Maven central. 
+This package is available on Maven central.
 
-#### Maven: 
+#### Maven:
 
 ```xml
 <dependency>
     <groupId>com.networknt</groupId>
     <artifactId>json-schema-validator</artifactId>
-    <version>1.4.0</version>
+    <version>1.5.5</version>
 </dependency>
 ```
 
@@ -229,7 +230,7 @@ This package is available on Maven central.
 
 ```java
 dependencies {
-    implementation(group: 'com.networknt', name: 'json-schema-validator', version: '1.4.0');
+    implementation(group: 'com.networknt', name: 'json-schema-validator', version: '1.5.5');
 }
 ```
 
@@ -237,7 +238,7 @@ dependencies {
 
 The following example demonstrates how inputs are validated against a schema. It comprises the following steps.
 
-* Creating a schema factory with the default schema dialect and how the schemas can be retrieved. 
+* Creating a schema factory with the default schema dialect and how the schemas can be retrieved.
   * Configuring mapping the `$id` to a retrieval URI using `schemaMappers`.
   * Configuring how the schemas are loaded using the retrieval URI using `schemaLoaders`.
     For instance a `Map<String, String> schemas` containing a mapping of retrieval URI to schema data as a `String` can by configured using `builder.schemaLoaders(schemaLoaders -> schemaLoaders.schemas(schemas))`. This also accepts a `Function<String, String> schemaRetrievalFunction`.
@@ -249,17 +250,17 @@ The following example demonstrates how inputs are validated against a schema. It
 // This creates a schema factory that will use Draft 2020-12 as the default if $schema is not specified
 // in the schema data. If $schema is specified in the schema data then that schema dialect will be used
 // instead and this version is ignored.
-JsonSchemaFactory jsonSchemaFactory = JsonSchemaFactory.getInstance(VersionFlag.V202012, builder -> 
+JsonSchemaFactory jsonSchemaFactory = JsonSchemaFactory.getInstance(VersionFlag.V202012, builder ->
     // This creates a mapping from $id which starts with https://www.example.org/ to the retrieval URI classpath:schema/
     builder.schemaMappers(schemaMappers -> schemaMappers.mapPrefix("https://www.example.org/", "classpath:schema/"))
 );
 
-SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-// By default JSON Path is used for reporting the instance location and evaluation path
-config.setPathType(PathType.JSON_POINTER);
+SchemaValidatorsConfig.Builder builder = SchemaValidatorsConfig.builder();
 // By default the JDK regular expression implementation which is not ECMA 262 compliant is used
-// Note that setting this to true requires including the optional joni dependency
-// config.setEcma262Validator(true);
+// Note that setting this requires including optional dependencies
+// builder.regularExpressionFactory(GraalJSRegularExpressionFactory.getInstance());
+// builder.regularExpressionFactory(JoniRegularExpressionFactory.getInstance());
+SchemaValidatorsConfig config = builder.build();
 
 // Due to the mapping the schema will be retrieved from the classpath at classpath:schema/example-main.json.
 // If the schema data does not specify an $id the absolute IRI of the schema location will be used as the $id.
@@ -289,12 +290,12 @@ Note that the meta-schemas for Draft 4, Draft 6, Draft 7, Draft 2019-09 and Draf
 ```java
 JsonSchemaFactory jsonSchemaFactory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
 
-SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-// By default JSON Path is used for reporting the instance location and evaluation path
-config.setPathType(PathType.JSON_POINTER);
+SchemaValidatorsConfig.Builder builder = SchemaValidatorsConfig.builder();
 // By default the JDK regular expression implementation which is not ECMA 262 compliant is used
-// Note that setting this to true requires including the optional joni dependency
-// config.setEcma262Validator(true);
+// Note that setting this requires including optional dependencies
+// builder.regularExpressionFactory(GraalJSRegularExpressionFactory.getInstance());
+// builder.regularExpressionFactory(JoniRegularExpressionFactory.getInstance());
+SchemaValidatorsConfig config = builder.build();
 
 // Due to the mapping the meta-schema will be retrieved from the classpath at classpath:draft/2020-12/schema.
 JsonSchema schema = jsonSchemaFactory.getSchema(SchemaLocation.of(SchemaId.V202012), config);
@@ -309,23 +310,23 @@ String input = "{\r\n"
     + "}";
 Set<ValidationMessage> assertions = schema.validate(input, InputFormat.JSON, executionContext -> {
     // By default since Draft 2019-09 the format keyword only generates annotations and not assertions
-    executionContext.getConfig().setFormatAssertionsEnabled(true);
+    executionContext.getExecutionConfig().setFormatAssertionsEnabled(true);
 });
-```        
+```
 ### Results and output formats
 
 #### Results
 
 The following types of results are generated by the library.
 
-| Type        | Description 
+| Type        | Description
 |-------------|-------------------
 | Assertions  | Validation errors generated by a keyword on a particular input data instance. This is generally described in a `ValidationMessage` or in a `OutputUnit`. Note that since Draft 2019-09 the `format` keyword no longer generates assertions by default and instead generates only annotations unless configured otherwise using a configuration option or by using a meta-schema that uses the appropriate vocabulary.
 | Annotations | Additional information generated by a keyword for a particular input data instance. This is generally described in a `OutputUnit`. Annotation collection and reporting is turned off by default. Annotations required by keywords such as `unevaluatedProperties` or `unevaluatedItems` are always collected for evaluation purposes and cannot be disabled but will not be reported unless configured to do so.
 
 The following information is used to describe both types of results.
 
-| Type              | Description 
+| Type              | Description
 |-------------------|-------------------
 | Evaluation Path   | This is the set of keys from the root through which evaluation passes to reach the schema for evaluating the instance. This includes `$ref` and `$dynamicRef`. eg. ```/properties/bar/$ref/properties/bar-prop```
 | Schema Location   | This is the canonical IRI of the schema plus the JSON pointer fragment to the schema that was used for evaluating the instance. eg. ```https://json-schema.org/schemas/example#/$defs/bar/properties/bar-prop```
@@ -333,7 +334,7 @@ The following information is used to describe both types of results.
 
 Assertions contains the following additional information
 
-| Type              | Description 
+| Type              | Description
 |-------------------|-------------------
 | Message           | The validation error message.
 | Code              | The error code.
@@ -341,15 +342,67 @@ Assertions contains the following additional information
 | Arguments         | The arguments used for generating the message.
 | Type              | The keyword that generated the message.
 | Property          | The property name that caused the validation error for example for the `required` keyword. Note that this is not part of the instance location as that points to the instance node.
-| Schema Node       | The `JsonNode` pointed to by the Schema Location.
-| Instance Node     | The `JsonNode` pointed to by the Instance Location.
+| Schema Node       | The `JsonNode` pointed to by the Schema Location. This is the schema data that caused the input data to fail. It is possible to get the location information by configuring the `JsonSchemaFactory` with a `JsonNodeReader` that uses the `LocationJsonNodeFactoryFactory` and using `JsonNodes.tokenLocationOf(schemaNode)`.
+| Instance Node     | The `JsonNode` pointed to by the Instance Location. This is the input data that failed validation. It is possible to get the location information by configuring the `JsonSchemaFactory` with a `JsonNodeReader` that uses the `LocationJsonNodeFactoryFactory` and using `JsonNodes.tokenLocationOf(instanceNode)`.
+| Error             | The error.
 | Details           | Additional details that can be set by custom keyword validator implementations. This is not used by the library.
 
 Annotations contains the following additional information
 
-| Type              | Description 
+| Type              | Description
 |-------------------|-------------------
 | Value             | The annotation value generated
+
+##### Line and Column Information
+
+The library can be configured to store line and column information in the `JsonNode` instances for the instance and schema nodes. This will adversely affect performance and is not configured by default.
+
+This is done by configuring a `JsonNodeReader` that uses the `LocationJsonNodeFactoryFactory`on the `JsonSchemaFactory`. The `JsonLocation` information can then be retrieved using `JsonNodes.tokenLocationOf(jsonNode)`.
+
+```java
+String schemaData = "{\r\n"
+                + "  \"$id\": \"https://schema/myschema\",\r\n"
+                + "  \"properties\": {\r\n"
+                + "    \"startDate\": {\r\n"
+                + "      \"format\": \"date\",\r\n"
+                + "      \"minLength\": 6\r\n"
+                + "    }\r\n"
+                + "  }\r\n"
+                + "}";
+String inputData = "{\r\n"
+                + "  \"startDate\": \"1\"\r\n"
+                + "}";
+JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012,
+        builder -> builder.jsonNodeReader(JsonNodeReader.builder().locationAware().build()));
+SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
+JsonSchema schema = factory.getSchema(schemaData, InputFormat.JSON, config);
+Set<ValidationMessage> messages = schema.validate(inputData, InputFormat.JSON, executionContext -> {
+    executionContext.getExecutionConfig().setFormatAssertionsEnabled(true);
+});
+List<ValidationMessage> list = messages.stream().collect(Collectors.toList());
+ValidationMessage format = list.get(0);
+JsonLocation formatInstanceNodeTokenLocation = JsonNodes.tokenLocationOf(format.getInstanceNode());
+JsonLocation formatSchemaNodeTokenLocation = JsonNodes.tokenLocationOf(format.getSchemaNode());
+ValidationMessage minLength = list.get(1);
+JsonLocation minLengthInstanceNodeTokenLocation = JsonNodes.tokenLocationOf(minLength.getInstanceNode());
+JsonLocation minLengthSchemaNodeTokenLocation = JsonNodes.tokenLocationOf(minLength.getSchemaNode());
+
+assertEquals("format", format.getType());
+assertEquals("date", format.getSchemaNode().asText());
+assertEquals(5, formatSchemaNodeTokenLocation.getLineNr());
+assertEquals(17, formatSchemaNodeTokenLocation.getColumnNr());
+assertEquals("1", format.getInstanceNode().asText());
+assertEquals(2, formatInstanceNodeTokenLocation.getLineNr());
+assertEquals(16, formatInstanceNodeTokenLocation.getColumnNr());
+assertEquals("minLength", minLength.getType());
+assertEquals("6", minLength.getSchemaNode().asText());
+assertEquals(6, minLengthSchemaNodeTokenLocation.getLineNr());
+assertEquals(20, minLengthSchemaNodeTokenLocation.getColumnNr());
+assertEquals("1", minLength.getInstanceNode().asText());
+assertEquals(2, minLengthInstanceNodeTokenLocation.getLineNr());
+assertEquals(16, minLengthInstanceNodeTokenLocation.getColumnNr());
+assertEquals(16, minLengthInstanceNodeTokenLocation.getColumnNr());
+```
 
 
 #### Output formats
@@ -358,7 +411,7 @@ This library implements the Flag, List and Hierarchical output formats defined i
 
 The List and Hierarchical output formats are particularly helpful for understanding how the system arrived at a particular result.
 
-| Output Format     | Description 
+| Output Format     | Description
 |-------------------|-------------------
 | Default           | Generates the list of assertions.
 | Boolean           | Returns `true` if the validation is successful. Note that the fail fast option is turned on by default for this output format.
@@ -370,11 +423,9 @@ The following example shows how to generate the hierarchical output format with 
 
 ```java
 JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
-SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-config.setPathType(PathType.JSON_POINTER);
-config.setFormatAssertionsEnabled(true);
+SchemaValidatorsConfig config = SchemaValidatorsConfig().builder().formatAssertionsEnabled(true).build();
 JsonSchema schema = factory.getSchema(SchemaLocation.of("https://json-schema.org/schemas/example"), config);
-        
+
 OutputUnit outputUnit = schema.validate(inputData, InputFormat.JSON, OutputFormat.HIERARCHICAL, executionContext -> {
     executionContext.getExecutionConfig().setAnnotationCollectionEnabled(true);
     executionContext.getExecutionConfig().setAnnotationCollectionFilter(keyword -> true);
@@ -458,30 +509,41 @@ The following is sample output from the Hierarchical format.
 | `locale`                       | The locale to use for generating messages in the `ValidationMessage`. Note that this value is copied from `SchemaValidatorsConfig` for each execution.                                                                            | `Locale.getDefault()`
 | `failFast`                     | Whether to return failure immediately when an assertion is generated. Note that this value is copied from `SchemaValidatorsConfig` for each execution but is automatically set to `true` for the Boolean and Flag output formats. | `false`
 | `formatAssertionsEnabled`      | The default is to generate format assertions from Draft 4 to Draft 7 and to only generate annotations from Draft 2019-09. Setting to `true` or `false` will override the default behavior.                                        | `null`
+| `debugEnabled`                 | Controls whether debug logging is enabled for logging the node information when processing. Note that this will generate a lot of logs that will affect performance.                                                              | `false`
 
 ### Schema Validators Configuration
 
 | Name                                  | Description                                                                                                                                                                                                                       | Default Value
 |---------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------
-| `pathType`                            | The path type to use for reporting the instance location and evaluation path. Set to `PathType.JSON_POINTER` to use JSON Pointer.                                                                                                 | `PathType.DEFAULT`
-| `ecma262Validator`                    | Whether to use the ECMA 262 `joni` library to validate the `pattern` keyword. This requires the dependency to be manually added to the project or a `ClassNotFoundException` will be thrown.                                      | `false`
-| `executionContextCustomizer`          | This can be used to customize the `ExecutionContext` generated by the `JsonSchema` for each validation run.                                                                                                                       | `null`
-| `schemaIdValidator`                   | This is used to customize how the `$id` values are validated. Note that the default implementation allows non-empty fragments where no base IRI is specified and also allows non-absolute IRI `$id` values in the root schema.    | `JsonSchemaIdValidator.DEFAULT`
-| `messageSource`                       | This is used to retrieve the locale specific messages.                                                                                                                                                                            | `DefaultMessageSource.getInstance()`
-| `preloadJsonSchema`                   | Whether the schema will be preloaded before processing any input. This will use memory but the execution of the validation will be faster.                                                                                        | `true`
-| `preloadJsonSchemaRefMaxNestingDepth` | The max depth of the evaluation path to preload when preloading refs.                                                                                                                                                             | `40`
+| `applyDefaultsStrategy`               | The strategy for applying defaults when walking when missing or null nodes are encountered.                                                                                                                                       | `ApplyDefaultsStrategy.EMPTY_APPLY_DEFAULTS_STRATEGY`
 | `cacheRefs`                           | Whether the schemas loaded from refs will be cached and reused for subsequent runs. Setting this to `false` will affect performance but may be neccessary to prevent high memory usage for the cache if multiple nested applicators like `anyOf`, `oneOf` and `allOf` are used.  | `true`
-| `locale`                              | The locale to use for generating messages in the `ValidationMessage`.                                                                                                                                                             | `Locale.getDefault()`
+| `discriminatorKeywordEnabled`         | Whether the `discriminator` keyword is handled according to OpenAPI 3.                                                                                                                                                            | `false`
+| `errorMessageKeyword`                 | The keyword to use for custom error messages in the schema. If not set this features is disabled. This is typically set to `errorMessage` or `message`.                                                                           | `null`
+| `executionContextCustomizer`          | This can be used to customize the `ExecutionContext` generated by the `JsonSchema` for each validation run.                                                                                                                       | `null`
 | `failFast`                            | Whether to return failure immediately when an assertion is generated.                                                                                                                                                             | `false`
 | `formatAssertionsEnabled`             | The default is to generate format assertions from Draft 4 to Draft 7 and to only generate annotations from Draft 2019-09. Setting to `true` or `false` will override the default behavior.                                        | `null`
+| `javaSemantics`                       | Whether java semantics is used for the `type` keyword.                                                                                                                                                                            | `false`
+| `locale`                              | The locale to use for generating messages in the `ValidationMessage`.                                                                                                                                                             | `Locale.getDefault()`
+| `losslessNarrowing`                   | Whether lossless narrowing is used for the `type` keyword.                                                                                                                                                                        | `false`
+| `messageSource`                       | This is used to retrieve the locale specific messages.                                                                                                                                                                            | `DefaultMessageSource.getInstance()`
+| `nullableKeywordEnabled`              | Whether the `nullable` keyword is handled according to OpenAPI 3.0. This affects the `enum` and `type` keywords.                                                                                                                  | `false`
+| `pathType`                            | The path type to use for reporting the instance location and evaluation path. Set to `PathType.JSON_PATH` to use JSON Path.                                                                                                       | `PathType.JSON_POINTER`
+| `preloadJsonSchema`                   | Whether the schema will be preloaded before processing any input. This will use memory but the execution of the validation will be faster.                                                                                        | `true`
+| `preloadJsonSchemaRefMaxNestingDepth` | The max depth of the evaluation path to preload when preloading refs.                                                                                                                                                             | `40`
+| `readOnly`                            | Whether schema is read only. This affects the `readOnly` keyword.                                                                                                                                                                 | `null`
+| `regularExpressionFactory`            | The factory to use to create regular expressions for instance `JoniRegularExpressionFactory` or `GraalJSRegularExpressionFactory`. This requires the dependency to be manually added to the project or a `ClassNotFoundException` will be thrown. | `JDKRegularExpressionFactory.getInstance()`
+| `schemaIdValidator`                   | This is used to customize how the `$id` values are validated. Note that the default implementation allows non-empty fragments where no base IRI is specified and also allows non-absolute IRI `$id` values in the root schema.    | `JsonSchemaIdValidator.DEFAULT`
+| `strict`                              | This is set whether keywords are strict in their validation. What this does depends on the individual validators.                                                                                                                 |
+| `typeLoose`                           | Whether types are interpreted in a loose manner. If set to true, a single value can be interpreted as a size 1 array. Strings may also be interpreted as number, integer or boolean.                                              | `false`
+| `writeOnly`                           | Whether schema is write only. This affects the `writeOnly` keyword.                                                                                                                                                               | `null`
 
 ## Performance Considerations
 
 When the library creates a schema from the schema factory, it creates a distinct validator instance for each location on the evaluation path. This means if there are different `$ref` that reference the same schema location, different validator instances are created for each evaluation path.
 
-When the schema is created, the library will automatically preload all the validators needed and resolve references. At this point, no exceptions will be thrown if a reference cannot be resolved. If there are references that are cyclic, only the first cycle will be preloaded. If you wish to ensure that remote references can all be resolved, the `initializeValidators` method needs to be called on the `JsonSchema` which will throw an exception if there are references that cannot be resolved.
+When the schema is created, the library will by default automatically preload all the validators needed and resolve references. This can be disabled with the `preloadJsonSchema` option in the `SchemaValidatorsConfig`. At this point, no exceptions will be thrown if a reference cannot be resolved. If there are references that are cyclic, only the first cycle will be preloaded. If you wish to ensure that remote references can all be resolved, the `initializeValidators` method needs to be called on the `JsonSchema` which will throw an exception if there are references that cannot be resolved.
 
-The `JsonSchema` created from the factory should be cached and reused. Not reusing the `JsonSchema` means that the schema data needs to be repeated parsed with validator instances created and references resolved.
+Instances for `JsonSchemaFactory` and the `JsonSchema` created from it are designed to be thread-safe provided its configuration is not modified and should be cached and reused. Not reusing the `JsonSchema` means that the schema data needs to be repeated parsed with validator instances created and references resolved. When references are resolved, the validators created will be cached. For schemas that have deeply nested references, the memory needed for the validators may be very high, in which case the caching may need to be disabled using the `cacheRefs` option in the `SchemaValidatorsConfig`. Disabling this will mean the validators from the references need to be re-created for each validation run which will impact performance.
 
 Collecting annotations will adversely affect validation performance.
 
@@ -489,6 +551,16 @@ The earlier draft specifications contain less keywords that can potentially impa
 
 This does not mean that using a schema with a later draft specification will automatically cause a performance impact. For instance, the `properties` validator will perform checks to determine if annotations need to be collected, and checks if the meta-schema contains the `unevaluatedProperties` keyword and whether the `unevaluatedProperties` keyword exists adjacent the evaluation path.
 
+## Security Considerations
+
+The library assumes that the schemas being loaded are trusted. This security model assumes the use case where the schemas are bundled with the application on the classpath.
+
+| Issue                 | Description                                                                                                                                                                                                                                          | Mitigation
+|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------
+| Schema Loading        | The library by default will load schemas from the classpath and over the internet if needed.                                                                                                                                                         | A `DisallowSchemaLoader` can be configured to not allow schema retrieval. Alternatively an `AllowSchemaLoader` can be configured to restrict the retrieval IRIs that are allowed.
+| Schema Caching        | The library by default preloads and caches references when loading schemas. While there is a max nesting depth when preloading schemas it is still possible to construct a schema that has a fan out that consumes a lot of memory from the server.  | Set `cacheRefs` option in `SchemaValidatorsConfig` to false.
+| Regular Expressions   | The library does not validate if a given regular expression is susceptable to denial of service ([ReDoS](https://owasp.org/www-community/attacks/Regular_expression_Denial_of_Service_-_ReDoS)).                                                     | An `AllowRegularExpressionFactory` can be configured to perform validation on the regular expressions that are allowed.
+| Validation Errors     | The library by default attempts to return all validation errors. The use of applicators such as `allOf` with a large number of schemas may result in a large number of validation errors taking up memory.                                           | Set `failFast` option in `SchemaValidatorsConfig` to immediately return when the first error is encountered. The `OutputFormat.BOOLEAN` or `OutputFormat.FLAG` also can be used.
 
 ## [Quick Start](doc/quickstart.md)
 
@@ -510,9 +582,9 @@ This does not mean that using a schema with a later draft specification will aut
 
 ## [JSON Schema Walkers and WalkListeners](doc/walkers.md)
 
-## [ECMA-262 Regex](doc/ecma-262.md)
+## [Regular Expressions](doc/ecma-262.md)
 
-## [Custom Message](doc/cust-msg.md)
+## [Custom Error Messages](doc/cust-msg.md)
 
 ## [Multiple Language](doc/multiple-language.md)
 
@@ -522,13 +594,13 @@ This does not mean that using a schema with a later draft specification will aut
 
 ## Projects
 
-The [light-rest-4j](https://github.com/networknt/light-rest-4j), [light-graphql-4j](https://github.com/networknt/light-graphql-4j) and [light-hybrid-4j](https://github.com/networknt/light-hybrid-4j) use this library to validate the request and response based on the specifications. If you are using other frameworks like Spring Boot, you can use the [OpenApiValidator](https://github.com/mservicetech/openapi-schema-validation), a generic OpenAPI 3.0 validator based on the OpenAPI 3.0 specification. 
+The [light-rest-4j](https://github.com/networknt/light-rest-4j), [light-graphql-4j](https://github.com/networknt/light-graphql-4j) and [light-hybrid-4j](https://github.com/networknt/light-hybrid-4j) use this library to validate the request and response based on the specifications. If you are using other frameworks like Spring Boot, you can use the [OpenApiValidator](https://github.com/mservicetech/openapi-schema-validation), a generic OpenAPI 3.0 validator based on the OpenAPI 3.0 specification.
 
 If you have a project using this library, please submit a PR to add your project below.
 
 ## Contributors
 
-Thanks to the following people who have contributed to this project. If you are using this library, please consider to be a sponsor for one of the contributors. 
+Thanks to the following people who have contributed to this project. If you are using this library, please consider to be a sponsor for one of the contributors.
 
 [@stevehu](https://github.com/sponsors/stevehu)
 
@@ -572,6 +644,3 @@ If you are a contributor, please join the [GitHub Sponsors](https://github.com/s
 
 
 ### Corporation Sponsors
-
-
-

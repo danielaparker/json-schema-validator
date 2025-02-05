@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.networknt.schema.annotation.JsonNodeAnnotation;
 import com.networknt.schema.i18n.DefaultMessageSource;
+import com.networknt.schema.i18n.MessageSource;
 
 import org.slf4j.Logger;
 
@@ -29,12 +30,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
+/**
+ * Base {@link JsonValidator}. 
+ */
 public abstract class BaseJsonValidator extends ValidationMessageHandler implements JsonValidator {
     protected final boolean suppressSubSchemaRetrieval;
 
     protected final JsonNode schemaNode;
 
-    protected ValidationContext validationContext;
+    protected final ValidationContext validationContext;
 
     public BaseJsonValidator(SchemaLocation schemaLocation, JsonNodePath evaluationPath, JsonNode schemaNode,
             JsonSchema parentSchema, ValidatorTypeCode validatorType, ValidationContext validationContext) {
@@ -47,8 +51,8 @@ public abstract class BaseJsonValidator extends ValidationMessageHandler impleme
             ValidationContext validationContext, boolean suppressSubSchemaRetrieval) {
         super(errorMessageType,
                 (validationContext != null && validationContext.getConfig() != null)
-                        ? validationContext.getConfig().isCustomMessageSupported()
-                        : true,
+                        ? validationContext.getConfig().getErrorMessageKeyword()
+                        : null,
                 (validationContext != null && validationContext.getConfig() != null)
                         ? validationContext.getConfig().getMessageSource()
                         : DefaultMessageSource.getInstance(),
@@ -60,15 +64,41 @@ public abstract class BaseJsonValidator extends ValidationMessageHandler impleme
     }
 
     /**
-     * Copy constructor.
-     * 
-     * @param copy to copy from
+     * Constructor to create a copy using fields.
+     *
+     * @param suppressSubSchemaRetrieval to suppress sub schema retrieval
+     * @param schemaNode the schema node
+     * @param validationContext the validation context
+     * @param errorMessageType the error message type
+     * @param errorMessageKeyword the error message keyword
+     * @param messageSource the message source
+     * @param keyword the keyword
+     * @param parentSchema the parent schema
+     * @param schemaLocation the schema location
+     * @param evaluationPath the evaluation path
+     * @param evaluationParentSchema the evaluation parent schema
+     * @param errorMessage the error message
      */
-    protected BaseJsonValidator(BaseJsonValidator copy) {
-        super(copy);
-        this.suppressSubSchemaRetrieval = copy.suppressSubSchemaRetrieval;
-        this.schemaNode = copy.schemaNode;
-        this.validationContext = copy.validationContext;
+    protected BaseJsonValidator(
+            /* Below from BaseJsonValidator */
+            boolean suppressSubSchemaRetrieval,
+            JsonNode schemaNode,
+            ValidationContext validationContext,
+            /* Below from ValidationMessageHandler */
+            ErrorMessageType errorMessageType,
+            String errorMessageKeyword,
+            MessageSource messageSource,
+            Keyword keyword,
+            JsonSchema parentSchema,
+            SchemaLocation schemaLocation,
+            JsonNodePath evaluationPath,
+            JsonSchema evaluationParentSchema,
+            Map<String, String> errorMessage) {
+        super(errorMessageType, errorMessageKeyword, messageSource, keyword,
+                parentSchema, schemaLocation, evaluationPath, evaluationParentSchema, errorMessage);
+        this.suppressSubSchemaRetrieval = suppressSubSchemaRetrieval;
+        this.schemaNode = schemaNode;
+        this.validationContext = validationContext;
     }
 
     private static JsonSchema obtainSubSchemaNode(final JsonNode schemaNode, final ValidationContext validationContext) {
@@ -96,13 +126,28 @@ public abstract class BaseJsonValidator extends ValidationMessageHandler impleme
         return Math.abs(n1 - n2) < 1e-12;
     }
 
-    protected static void debug(Logger logger, JsonNode node, JsonNode rootNode, JsonNodePath instanceLocation) {
-        logger.debug("validate( {}, {}, {})", node, rootNode, instanceLocation);
+    public static void debug(Logger logger, ExecutionContext executionContext, JsonNode node, JsonNode rootNode,
+            JsonNodePath instanceLocation) {
+        //logger.debug("validate( {}, {}, {})", node, rootNode, instanceLocation);
+        // The below is equivalent to the above but as there are more than 2 arguments
+        // the var-arg method is used and an array needs to be allocated even if debug
+        // is not enabled
+        if (executionContext.getExecutionConfig().isDebugEnabled() && logger.isDebugEnabled()) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("validate( ");
+            builder.append(node.toString());
+            builder.append(", ");
+            builder.append(rootNode.toString());
+            builder.append(", ");
+            builder.append(instanceLocation.toString());
+            builder.append(")");
+            logger.debug(builder.toString());
+        }
     }
 
     /**
      * Checks based on the current {@link DiscriminatorContext} whether the provided {@link JsonSchema} a match against
-     * against the current discriminator.
+     * the current discriminator.
      *
      * @param currentDiscriminatorContext the currently active {@link DiscriminatorContext}
      * @param discriminator               the discriminator to use for the check
@@ -346,21 +391,21 @@ public abstract class BaseJsonValidator extends ValidationMessageHandler impleme
      * @return true if found
      */
     protected boolean hasAdjacentKeywordInEvaluationPath(String keyword) {
-        boolean hasValidator = false;
         JsonSchema schema = getEvaluationParentSchema();
         while (schema != null) {
             for (JsonValidator validator : schema.getValidators()) {
                 if (keyword.equals(validator.getKeyword())) {
-                    hasValidator = true;
-                    break;
+                    return true;
                 }
             }
-            if (hasValidator) {
-                break;
+            Object element = schema.getEvaluationPath().getElement(-1);
+            if ("properties".equals(element) || "items".equals(element)) {
+                // If there is a change in instance location then return false
+                return false;
             }
             schema = schema.getEvaluationParentSchema();
         }
-        return hasValidator;
+        return false;
     }
 
     @Override

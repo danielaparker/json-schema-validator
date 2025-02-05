@@ -27,7 +27,7 @@ import com.networknt.schema.SpecVersion.VersionFlag;
 /**
  * Test TypeValidator validator.
  */
-public class TypeValidatorTest {
+class TypeValidatorTest {
     String schemaData = "{\r\n" // Issue 415
             + "  \"$schema\": \"http://json-schema.org/draft-07/schema\",\r\n"
             + "  \"$id\": \"http://example.com/example.json\",\r\n"
@@ -78,8 +78,7 @@ public class TypeValidatorTest {
         assertEquals(1, messages.stream().filter(m -> "type".equals(m.getType())).count());
 
         // With type loose this has 0 type errors as any item can also be interpreted as an array of 1 item
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setTypeLoose(true);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().typeLoose(true).build();
         JsonSchema typeLoose = factory.getSchema(schemaData, config);
         messages = typeLoose.validate(inputData, InputFormat.JSON);
         assertEquals(0, messages.size());
@@ -149,5 +148,37 @@ public class TypeValidatorTest {
         JsonSchema schema = JsonSchemaFactory.getInstance(VersionFlag.V4).getSchema(schemaData);
         ValidationResult result = schema.walk(null, true);
         assertTrue(result.getValidationMessages().isEmpty());
+    }
+
+    @Test
+    void nullable() {
+        String schemaData = "{\r\n"
+                + "   \"$schema\":\"http://json-schema.org/draft-07/schema#\",\r\n"
+                + "   \"type\":\"object\",\r\n"
+                + "   \"properties\":{\r\n"
+                + "      \"test\":{\r\n"
+                + "         \"type\":\"object\",\r\n"
+                + "         \"properties\":{\r\n"
+                + "            \"nested\":{\r\n"
+                + "               \"type\":\"string\",\r\n"
+                + "               \"nullable\":true,\r\n"
+                + "               \"format\":\"date\"\r\n"
+                + "            }\r\n"
+                + "         }\r\n"
+                + "      }\r\n"
+                + "   }\r\n"
+                + "}";
+        String inputData = "{\r\n"
+                + "  \"test\":{\r\n"
+                + "      \"nested\":null\r\n"
+                + "  }\r\n"
+                + "}";
+        final JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V7);
+        final JsonSchema validator = factory.getSchema(schemaData, SchemaValidatorsConfig.builder()
+            .nullableKeywordEnabled(false)
+            .build());
+
+        final Set<ValidationMessage> errors = validator.validate(inputData, InputFormat.JSON);
+        assertEquals(1, errors.size());
     }
 }

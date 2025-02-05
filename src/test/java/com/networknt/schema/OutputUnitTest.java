@@ -17,6 +17,7 @@ package com.networknt.schema;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -36,11 +37,11 @@ import com.networknt.schema.serialization.JsonMapperFactory;
  * OutputUnitTest.
  * 
  * @see <a href=
- *      "https://github.com/json-schema-org/json-schema-spec/blob/main/jsonschema-validation-output-machines.md">A
+ *      "https://github.com/json-schema-org/json-schema-spec/blob/main/output/jsonschema-validation-output-machines.md">A
  *      Specification for Machine-Readable Output for JSON Schema Validation and
  *      Annotation</a>
  */
-public class OutputUnitTest {
+class OutputUnitTest {
     String schemaData = "{\r\n"
             + "  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\r\n"
             + "  \"$id\": \"https://json-schema.org/schemas/example\",\r\n"
@@ -95,8 +96,7 @@ public class OutputUnitTest {
     @Test
     void annotationCollectionList() throws JsonProcessingException {
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPathType(PathType.JSON_POINTER);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
         JsonSchema schema = factory.getSchema(schemaData, config);
         
         String inputData = inputData1;
@@ -113,8 +113,7 @@ public class OutputUnitTest {
     @Test
     void annotationCollectionHierarchical() throws JsonProcessingException {
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPathType(PathType.JSON_POINTER);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
         JsonSchema schema = factory.getSchema(schemaData, config);
 
         String inputData = inputData1;
@@ -131,8 +130,7 @@ public class OutputUnitTest {
     @Test
     void annotationCollectionHierarchical2() throws JsonProcessingException {
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPathType(PathType.JSON_POINTER);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
         JsonSchema schema = factory.getSchema(schemaData, config);
 
         String inputData = inputData2;
@@ -181,8 +179,7 @@ public class OutputUnitTest {
                 + "  \"format\": \""+formatInput.format+"\"\r\n"
                 + "}";
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPathType(PathType.JSON_POINTER);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
         JsonSchema schema = factory.getSchema(formatSchema, config);
         OutputUnit outputUnit = schema.validate("\"inval!i:d^(abc]\"", InputFormat.JSON, OutputFormat.LIST, executionConfiguration -> {
             executionConfiguration.getExecutionConfig().setAnnotationCollectionEnabled(true);
@@ -201,8 +198,7 @@ public class OutputUnitTest {
                 + "  \"format\": \""+formatInput.format+"\"\r\n"
                 + "}";
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPathType(PathType.JSON_POINTER);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
         JsonSchema schema = factory.getSchema(formatSchema, config);
         OutputUnit outputUnit = schema.validate("\"inval!i:d^(abc]\"", InputFormat.JSON, OutputFormat.LIST, executionConfiguration -> {
             executionConfiguration.getExecutionConfig().setAnnotationCollectionEnabled(true);
@@ -221,8 +217,7 @@ public class OutputUnitTest {
                 + "  \"type\": [\"string\",\"array\"]\r\n"
                 + "}";
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPathType(PathType.JSON_POINTER);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
         JsonSchema schema = factory.getSchema(typeSchema, config);
         OutputUnit outputUnit = schema.validate("1", InputFormat.JSON, OutputFormat.LIST, executionConfiguration -> {
             executionConfiguration.getExecutionConfig().setAnnotationCollectionEnabled(true);
@@ -272,8 +267,7 @@ public class OutputUnitTest {
 
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012,
                 builder -> builder.schemaLoaders(schemaLoaders -> schemaLoaders.schemas(external)));
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPathType(PathType.JSON_POINTER);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
         JsonSchema schema = factory.getSchema(schemaData, config);
         
      // The following checks if the heirarchical output format is correct with multiple unevaluated properties
@@ -322,8 +316,7 @@ public class OutputUnitTest {
                 + "}";
         
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPathType(PathType.JSON_POINTER);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
         JsonSchema schema = factory.getSchema(schemaData, config);
         
         String inputData = "{\r\n"
@@ -339,4 +332,32 @@ public class OutputUnitTest {
         assertEquals(expected, output);
     }
 
+    @Test
+    void listAssertionMapper() {
+        String formatSchema = "{\r\n"
+                + "  \"type\": \"string\"\r\n"
+                + "}";
+        JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
+        JsonSchema schema = factory.getSchema(formatSchema, config);
+        OutputUnit outputUnit = schema.validate("1234", InputFormat.JSON, new OutputFormat.List(a -> a));
+        assertFalse(outputUnit.isValid());
+        OutputUnit details = outputUnit.getDetails().get(0);
+        Object assertion = details.getErrors().get("type");
+        assertInstanceOf(ValidationMessage.class, assertion);
+    }
+
+    @Test
+    void hierarchicalAssertionMapper() {
+        String formatSchema = "{\r\n"
+                + "  \"type\": \"string\"\r\n"
+                + "}";
+        JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
+        JsonSchema schema = factory.getSchema(formatSchema, config);
+        OutputUnit outputUnit = schema.validate("1234", InputFormat.JSON, new OutputFormat.Hierarchical(a -> a));
+        assertFalse(outputUnit.isValid());
+        Object assertion = outputUnit.getErrors().get("type");
+        assertInstanceOf(ValidationMessage.class, assertion);
+    }
 }

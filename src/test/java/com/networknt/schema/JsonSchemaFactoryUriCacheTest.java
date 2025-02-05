@@ -15,17 +15,17 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class JsonSchemaFactoryUriCacheTest {
+class JsonSchemaFactoryUriCacheTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    public void cacheEnabled() throws JsonProcessingException {
+    void cacheEnabled() throws JsonProcessingException {
         runCacheTest(true);
     }
 
     @Test
-    public void cacheDisabled() throws JsonProcessingException {
+    void cacheDisabled() throws JsonProcessingException {
         runCacheTest(false);
     }
 
@@ -35,12 +35,12 @@ public class JsonSchemaFactoryUriCacheTest {
         SchemaLocation schemaUri = SchemaLocation.of("cache:uri_mapping/schema1.json");
         String schema = "{ \"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"title\": \"json-object-with-schema\", \"type\": \"string\" }";
         fetcher.addResource(schemaUri.getAbsoluteIri(), schema);
-        assertEquals(objectMapper.readTree(schema), factory.getSchema(schemaUri, new SchemaValidatorsConfig()).schemaNode);
+        assertEquals(objectMapper.readTree(schema), factory.getSchema(schemaUri, SchemaValidatorsConfig.builder().build()).schemaNode);
 
         String modifiedSchema = "{ \"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"title\": \"json-object-with-schema\", \"type\": \"object\" }";
         fetcher.addResource(schemaUri.getAbsoluteIri(), modifiedSchema);
 
-        assertEquals(objectMapper.readTree(enableCache ? schema : modifiedSchema), factory.getSchema(schemaUri, new SchemaValidatorsConfig()).schemaNode);
+        assertEquals(objectMapper.readTree(enableCache ? schema : modifiedSchema), factory.getSchema(schemaUri, SchemaValidatorsConfig.builder().build()).schemaNode);
     }
 
     private JsonSchemaFactory buildJsonSchemaFactory(CustomURIFetcher uriFetcher, boolean enableSchemaCache) {
@@ -53,7 +53,7 @@ public class JsonSchemaFactoryUriCacheTest {
 
     private class CustomURIFetcher implements SchemaLoader {
 
-        private Map<AbsoluteIri, InputStream> uriToResource = new HashMap<>();
+        private final Map<AbsoluteIri, InputStream> uriToResource = new HashMap<>();
 
         void addResource(AbsoluteIri uri, String schema) {
             addResource(uri, new ByteArrayInputStream(schema.getBytes(StandardCharsets.UTF_8)));

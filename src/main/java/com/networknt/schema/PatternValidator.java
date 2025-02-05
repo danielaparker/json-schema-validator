@@ -27,8 +27,8 @@ import java.util.Set;
 
 public class PatternValidator extends BaseJsonValidator {
     private static final Logger logger = LoggerFactory.getLogger(PatternValidator.class);
-    private String pattern;
-    private RegularExpression compiledPattern;
+    private final String pattern;
+    private final RegularExpression compiledPattern;
 
     public PatternValidator(SchemaLocation schemaLocation, JsonNodePath evaluationPath, JsonNode schemaNode, JsonSchema parentSchema, ValidationContext validationContext) {
         super(schemaLocation, evaluationPath, schemaNode, parentSchema, ValidatorTypeCode.PATTERN, validationContext);
@@ -49,7 +49,7 @@ public class PatternValidator extends BaseJsonValidator {
 
     @Override
     public Set<ValidationMessage> validate(ExecutionContext executionContext, JsonNode node, JsonNode rootNode, JsonNodePath instanceLocation) {
-        debug(logger, node, rootNode, instanceLocation);
+        debug(logger, executionContext, node, rootNode, instanceLocation);
 
         JsonType nodeType = TypeFactory.getValueNodeType(node, this.validationContext.getConfig());
         if (nodeType != JsonType.STRING) {
@@ -62,7 +62,7 @@ public class PatternValidator extends BaseJsonValidator {
                         .locale(executionContext.getExecutionConfig().getLocale())
                         .failFast(executionContext.isFailFast()).arguments(this.pattern).build());
             }
-        } catch (JsonSchemaException e) {
+        } catch (JsonSchemaException | FailFastAssertionException e) {
             throw e;
         } catch (RuntimeException e) {
             logger.error("Failed to apply pattern '{}' at {}: {}", this.pattern, instanceLocation, e.getMessage());

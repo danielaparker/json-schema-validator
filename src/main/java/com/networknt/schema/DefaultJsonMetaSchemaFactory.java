@@ -15,6 +15,7 @@
  */
 package com.networknt.schema;
 
+import java.util.Map;
 import java.util.Map.Entry;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -40,9 +41,6 @@ public class DefaultJsonMetaSchemaFactory implements JsonMetaSchemaFactory {
             SchemaValidatorsConfig config) {
         try {
             JsonMetaSchema result = loadMetaSchemaBuilder(iri, schemaFactory, config).build();
-            if (result.getKeywords().containsKey("discriminator")) {
-                config.setOpenAPI3StyleDiscriminators(true);
-            }
             return result;
         } catch (InvalidSchemaException e) {
             throw e;
@@ -63,7 +61,7 @@ public class DefaultJsonMetaSchemaFactory implements JsonMetaSchemaFactory {
                 // Process vocabularies
                 JsonNode vocabulary = schema.getSchemaNode().get("$vocabulary");
                 if (vocabulary != null) {
-                    builder.vocabularies(vocabularies -> vocabularies.clear());
+                    builder.vocabularies(Map::clear);
                     for (Entry<String, JsonNode> vocabs : vocabulary.properties()) {
                         builder.vocabulary(vocabs.getKey(), vocabs.getValue().booleanValue());
                     }
@@ -74,7 +72,7 @@ public class DefaultJsonMetaSchemaFactory implements JsonMetaSchemaFactory {
     }
 
     private static class Holder {
-        private static DefaultJsonMetaSchemaFactory INSTANCE = new DefaultJsonMetaSchemaFactory();
+        private static final DefaultJsonMetaSchemaFactory INSTANCE = new DefaultJsonMetaSchemaFactory();
     }
 
     public static DefaultJsonMetaSchemaFactory getInstance() {

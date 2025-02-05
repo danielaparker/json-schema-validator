@@ -27,7 +27,7 @@ import com.networknt.schema.serialization.JsonMapperFactory;
 /**
  * ContentSchemaValidatorTest.
  */
-public class ContentSchemaValidatorTest {
+class ContentSchemaValidatorTest {
     @Test
     void annotationCollection() throws JsonProcessingException {
         String schemaData = "{\r\n"
@@ -55,8 +55,7 @@ public class ContentSchemaValidatorTest {
                 + "    }\r\n"
                 + "}";
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPathType(PathType.JSON_POINTER);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
         JsonSchema schema = factory.getSchema(schemaData, config);
 
         String inputData = "\"helloworld\"";

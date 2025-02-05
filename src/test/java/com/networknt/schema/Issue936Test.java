@@ -22,13 +22,14 @@ import org.junit.jupiter.api.Test;
 
 import com.networknt.schema.SpecVersion.VersionFlag;
 
-public class Issue936Test {
+class Issue936Test {
     @Test
     void shouldThrowInvalidSchemaException() {
         String schema = "{\r\n" + "  \"$id\": \"0\",\r\n"
                 + "  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\"\r\n" + "}";
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setSchemaIdValidator(JsonSchemaIdValidator.DEFAULT);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder()
+                .schemaIdValidator(JsonSchemaIdValidator.DEFAULT)
+                .build();
         assertThrowsExactly(InvalidSchemaException.class,
                 () -> JsonSchemaFactory.getInstance(VersionFlag.V202012).getSchema(schema, config));
         try {

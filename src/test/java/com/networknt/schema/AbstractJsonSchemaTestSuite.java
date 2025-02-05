@@ -16,9 +16,9 @@
 
 package com.networknt.schema;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.SpecVersion.VersionFlag;
-import com.networknt.schema.serialization.JsonMapperFactory;
+import com.networknt.schema.regex.JDKRegularExpressionFactory;
+import com.networknt.schema.regex.JoniRegularExpressionFactory;
 import com.networknt.schema.suite.TestCase;
 import com.networknt.schema.suite.TestSource;
 import com.networknt.schema.suite.TestSpec;
@@ -44,10 +44,7 @@ import static org.junit.jupiter.api.Assumptions.abort;
 import static org.junit.jupiter.api.DynamicContainer.dynamicContainer;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 
-public abstract class AbstractJsonSchemaTestSuite extends HTTPServiceSupport {
-
-
-    protected ObjectMapper mapper = JsonMapperFactory.getInstance();
+abstract class AbstractJsonSchemaTestSuite extends HTTPServiceSupport {
 
     private static String toForwardSlashPath(Path file) {
         return file.toString().replace('\\', '/');
@@ -55,7 +52,9 @@ public abstract class AbstractJsonSchemaTestSuite extends HTTPServiceSupport {
 
     private static void executeTest(JsonSchema schema, TestSpec testSpec) {
         Set<ValidationMessage> errors = schema.validate(testSpec.getData(), OutputFormat.DEFAULT, (executionContext, validationContext) -> {
-            if (testSpec.getTestCase().getSource().getPath().getParent().toString().endsWith("format")) {
+            if (testSpec.getTestCase().getSource().getPath().getParent().toString().endsWith("format")
+                    || "ecmascript-regex.json"
+                            .equals(testSpec.getTestCase().getSource().getPath().getFileName().toString())) {
                 executionContext.getExecutionConfig().setFormatAssertionsEnabled(true);
             }
         });
@@ -186,7 +185,6 @@ public abstract class AbstractJsonSchemaTestSuite extends HTTPServiceSupport {
         JsonSchemaFactory base = JsonSchemaFactory.getInstance(specVersion);
         return JsonSchemaFactory
                 .builder(base)
-                .jsonMapper(this.mapper)
                 .schemaMappers(schemaMappers -> schemaMappers
                         .mapPrefix("https://", "http://")
                         .mapPrefix("http://json-schema.org", "resource:"))
@@ -202,25 +200,27 @@ public abstract class AbstractJsonSchemaTestSuite extends HTTPServiceSupport {
         // if test file do not contains typeLoose flag, use default value: false.
         @SuppressWarnings("deprecation") boolean typeLoose = testSpec.isTypeLoose();
 
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setTypeLoose(typeLoose);
-        config.setEcma262Validator(TestSpec.RegexKind.JDK != testSpec.getRegex());
-        testSpec.getStrictness().forEach(config::setStrict);
+        SchemaValidatorsConfig.Builder configBuilder = SchemaValidatorsConfig.builder();
+        configBuilder.typeLoose(typeLoose);
+        configBuilder.regularExpressionFactory(
+                TestSpec.RegexKind.JDK == testSpec.getRegex() ? JDKRegularExpressionFactory.getInstance()
+                        : JoniRegularExpressionFactory.getInstance());
+        testSpec.getStrictness().forEach(configBuilder::strict);
 
         if (testSpec.getConfig() != null) {
             if (testSpec.getConfig().containsKey("isCustomMessageSupported")) {
-                config.setCustomMessageSupported((Boolean) testSpec.getConfig().get("isCustomMessageSupported"));
+                configBuilder.errorMessageKeyword(
+                        (Boolean) testSpec.getConfig().get("isCustomMessageSupported") ? "message" : null);
             }
             if (testSpec.getConfig().containsKey("readOnly")) {
-                config.setReadOnly((Boolean) testSpec.getConfig().get("readOnly"));
+                configBuilder.readOnly((Boolean) testSpec.getConfig().get("readOnly"));
             }
             if (testSpec.getConfig().containsKey("writeOnly")) {
-                config.setWriteOnly((Boolean) testSpec.getConfig().get("writeOnly"));
+                configBuilder.writeOnly((Boolean) testSpec.getConfig().get("writeOnly"));
             }
         }
-
         SchemaLocation testCaseFileUri = SchemaLocation.of("classpath:" + toForwardSlashPath(testSpec.getTestCase().getSpecification()));
-        JsonSchema schema = validatorFactory.getSchema(testCaseFileUri, testSpec.getTestCase().getSchema(), config);
+        JsonSchema schema = validatorFactory.getSchema(testCaseFileUri, testSpec.getTestCase().getSchema(), configBuilder.build());
 
         return dynamicTest(testSpec.getDescription(), () -> executeAndReset(schema, testSpec));
     }

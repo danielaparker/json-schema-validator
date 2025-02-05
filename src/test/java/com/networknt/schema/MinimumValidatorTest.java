@@ -16,35 +16,36 @@
 
 package com.networknt.schema;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.Set;
-
 import static com.networknt.schema.MaximumValidatorTest.augmentWithQuotes;
 import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class MinimumValidatorTest {
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.Set;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+class MinimumValidatorTest {
     private static final String NUMBER = "{ \"$schema\":\"http://json-schema.org/draft-04/schema#\", \"type\": \"number\", \"minimum\": %s }";
     private static final String EXCLUSIVE_INTEGER = "{ \"$schema\":\"http://json-schema.org/draft-04/schema#\", \"type\": \"integer\", \"minimum\": %s, \"exclusiveMinimum\": true}";
     private static final String INTEGER = "{ \"$schema\":\"http://json-schema.org/draft-04/schema#\", \"type\": \"integer\", \"minimum\": %s }";
     private static final String NEGATIVE_MESSAGE_TEMPLATE = "Expecting validation errors, value %s is smaller than minimum %s";
     private static final String POSITIVT_MESSAGE_TEMPLATE = "Expecting no validation errors, value %s is greater than minimum %s";
-    private static JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
+    private static final JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
 
     private static ObjectMapper mapper;
     private static ObjectMapper bigDecimalMapper;
     private static ObjectMapper bigIntegerMapper;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         mapper = new ObjectMapper();
         // due to a jackson bug, a float number which is larger than Double.POSITIVE_INFINITY cannot be convert to BigDecimal correctly
         // https://github.com/FasterXML/jackson-databind/issues/1770
@@ -55,7 +56,7 @@ public class MinimumValidatorTest {
     }
 
     @Test
-    public void positiveNumber() throws IOException {
+    void positiveNumber() throws IOException {
         String[][] values = augmentWithQuotes(new String[][]{
 //            minimum,                       value
                 {"1000", "1000.1"},
@@ -65,7 +66,7 @@ public class MinimumValidatorTest {
     }
 
     @Test
-    public void negativeNumber() throws IOException {
+    void negativeNumber() throws IOException {
         String[][] values = augmentWithQuotes(new String[][]{
 //            minimum,                           value
                 {"-1.7976931348623157e+308", "-1.7976931348623159e+308"},
@@ -84,7 +85,7 @@ public class MinimumValidatorTest {
     }
 
     @Test
-    public void positiveInteger() throws IOException {
+    void positiveInteger() throws IOException {
         String[][] values = augmentWithQuotes(new String[][]{
 //            minimum,                       value
                 {"-1E309", "-1000"},
@@ -96,7 +97,7 @@ public class MinimumValidatorTest {
     }
 
     @Test
-    public void negativeInteger() throws IOException {
+    void negativeInteger() throws IOException {
         String[][] values = augmentWithQuotes(new String[][]{
 //            minimum,                value
                 {"-9223372036854775800", "-9223372036854775855"},
@@ -109,7 +110,7 @@ public class MinimumValidatorTest {
     }
 
     @Test
-    public void positiveExclusiveInteger() throws IOException {
+    void positiveExclusiveInteger() throws IOException {
         String[][] values = augmentWithQuotes(new String[][]{
 //                minimum,                       value
                 {"-9223372036854775000", "-9223372036854774988"},
@@ -126,7 +127,7 @@ public class MinimumValidatorTest {
     }
 
     @Test
-    public void negativeExclusiveInteger() throws IOException {
+    void negativeExclusiveInteger() throws IOException {
         String[][] values = augmentWithQuotes(new String[][]{
 //            minimum,                       value
                 {"20", "10"},
@@ -142,7 +143,7 @@ public class MinimumValidatorTest {
     }
 
     @Test
-    public void negativeDoubleOverflowTest() throws IOException {
+    void negativeDoubleOverflowTest() throws IOException {
         String[][] values = {
 //            minimum,                            value
                 {"-1.79769313486231571E+308", "-1.79769313486231572e+308"},
@@ -171,8 +172,7 @@ public class MinimumValidatorTest {
             String minimum = aTestCycle[0];
             String value = aTestCycle[1];
             String schema = format(NUMBER, minimum);
-            SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-            config.setTypeLoose(true);
+            SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().typeLoose(true).build();
 
             // Schema and document parsed with just double
             JsonSchema v = factory.getSchema(mapper.readTree(schema), config);
@@ -213,7 +213,7 @@ public class MinimumValidatorTest {
      * the only way to spot this is to use BigDecimal for schema (and for document)
      */
     @Test
-    public void doubleValueCoarsing() throws IOException {
+    void doubleValueCoarsing() throws IOException {
         String schema = "{ \"$schema\":\"http://json-schema.org/draft-04/schema#\", \"type\": \"number\", \"minimum\": -1.7976931348623157e+308 }";
         String content = "-1.7976931348623158e+308";
 
@@ -243,7 +243,7 @@ public class MinimumValidatorTest {
      * BigDecimalMapper issue, it doesn't work as expected, it will treat -1.7976931348623157e+309 as INFINITY instead of as it is.
      */
     @Test
-    public void doubleValueCoarsingExceedRange() throws IOException {
+    void doubleValueCoarsingExceedRange() throws IOException {
         String schema = "{ \"$schema\":\"http://json-schema.org/draft-04/schema#\", \"type\": \"number\", \"minimum\": -1.7976931348623159e+308 }";
         String content = "-1.7976931348623160e+308";
 
@@ -287,8 +287,7 @@ public class MinimumValidatorTest {
             String minimum = aTestCycle[0];
             String value = aTestCycle[1];
             String schema = format(integer, minimum);
-            SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-            config.setTypeLoose(true);
+            SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().typeLoose(true).build();
 
             JsonSchema v = factory.getSchema(mapper.readTree(schema), config);
             JsonNode doc = bigIntegerMapper.readTree(value);

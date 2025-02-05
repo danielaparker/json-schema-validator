@@ -56,9 +56,9 @@ public class JsonMetaSchema {
         private String iri;
         private String idKeyword = "$id";
         private VersionFlag specification = null;
-        private Map<String, Keyword> keywords = new HashMap<>();
-        private Map<String, Format> formats = new HashMap<>();
-        private Map<String, Boolean> vocabularies = new HashMap<>();
+        private final Map<String, Keyword> keywords = new HashMap<>();
+        private final Map<String, Format> formats = new HashMap<>();
+        private final Map<String, Boolean> vocabularies = new HashMap<>();
         private FormatKeywordFactory formatKeywordFactory = null;
         private VocabularyFactory vocabularyFactory = null;
         private KeywordFactory unknownKeywordFactory = null;
@@ -369,7 +369,7 @@ public class JsonMetaSchema {
      * Use {@link #getV4()} for the Draft 4 Metaschema, or if you need a builder based on Draft4, use
      *
      * <code>
-     * JsonMetaSchema.builder("http://your-metaschema-iri", JsonSchemaFactory.getDraftV4()).build();
+     * JsonMetaSchema.builder("http://your-metaschema-iri", JsonMetaSchema.getV4()).build();
      * </code>
      *
      * @param iri the IRI of the metaschema that will be defined via this builder.
@@ -439,11 +439,8 @@ public class JsonMetaSchema {
     }
 
     private static String readText(JsonNode node, String field) {
-        JsonNode idNode = node.get(field);
-        if (idNode == null || !idNode.isTextual()) {
-            return null;
-        }
-        return idNode.textValue();
+        JsonNode fieldNode = node.get(field);
+        return fieldNode == null ? null : fieldNode.textValue();
     }
 
     public String getIri() {
@@ -478,11 +475,14 @@ public class JsonMetaSchema {
         try {
             Keyword kw = this.keywords.get(keyword);
             if (kw == null) {
-                if ("message".equals(keyword) && validationContext.getConfig().isCustomMessageSupported()) {
+                if (keyword.equals(validationContext.getConfig().getErrorMessageKeyword())) {
+                    return null;
+                }
+                if (validationContext.getConfig().isNullableKeywordEnabled() && "nullable".equals(keyword)) {
                     return null;
                 }
                 if (ValidatorTypeCode.DISCRIMINATOR.getValue().equals(keyword)
-                        && validationContext.getConfig().isOpenAPI3StyleDiscriminators()) {
+                        && validationContext.getConfig().isDiscriminatorKeywordEnabled()) {
                     return ValidatorTypeCode.DISCRIMINATOR.newValidator(schemaLocation, evaluationPath, schemaNode,
                             parentSchema, validationContext);
                 }

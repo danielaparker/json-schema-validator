@@ -31,11 +31,20 @@ import org.slf4j.LoggerFactory;
 public class AllOfValidator extends BaseJsonValidator {
     private static final Logger logger = LoggerFactory.getLogger(AllOfValidator.class);
 
-    private final List<JsonSchema> schemas = new ArrayList<>();
+    private final List<JsonSchema> schemas;
 
     public AllOfValidator(SchemaLocation schemaLocation, JsonNodePath evaluationPath, JsonNode schemaNode, JsonSchema parentSchema, ValidationContext validationContext) {
         super(schemaLocation, evaluationPath, schemaNode, parentSchema, ValidatorTypeCode.ALL_OF, validationContext);
+        if (!schemaNode.isArray()) {
+            JsonType nodeType = TypeFactory.getValueNodeType(schemaNode, this.validationContext.getConfig());
+            throw new JsonSchemaException(message().instanceNode(schemaNode)
+                    .instanceLocation(schemaLocation.getFragment())
+                    .messageKey("type")
+                    .arguments(nodeType.toString(), "array")
+                    .build());
+        }
         int size = schemaNode.size();
+        this.schemas = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
             this.schemas.add(validationContext.newSchema(schemaLocation.append(i), evaluationPath.append(i),
                     schemaNode.get(i), parentSchema));
@@ -44,17 +53,18 @@ public class AllOfValidator extends BaseJsonValidator {
 
     @Override
     public Set<ValidationMessage> validate(ExecutionContext executionContext, JsonNode node, JsonNode rootNode, JsonNodePath instanceLocation) {
-        debug(logger, node, rootNode, instanceLocation);
+        return validate(executionContext, node, rootNode, instanceLocation, false);
+    }
 
-        // get the Validator state object storing validation data
-        ValidatorState state = executionContext.getValidatorState();
+    protected Set<ValidationMessage> validate(ExecutionContext executionContext, JsonNode node, JsonNode rootNode, JsonNodePath instanceLocation, boolean walk) {
+        debug(logger, executionContext, node, rootNode, instanceLocation);
 
         SetView<ValidationMessage> childSchemaErrors = null;
 
         for (JsonSchema schema : this.schemas) {
             Set<ValidationMessage> localErrors = null;
 
-            if (!state.isWalkEnabled()) {
+            if (!walk) {
                 localErrors = schema.validate(executionContext, node, rootNode, instanceLocation);
             } else {
                 localErrors = schema.walk(executionContext, node, rootNode, instanceLocation, true);
@@ -67,7 +77,7 @@ public class AllOfValidator extends BaseJsonValidator {
                 childSchemaErrors.union(localErrors);
             }
 
-            if (this.validationContext.getConfig().isOpenAPI3StyleDiscriminators()) {
+            if (this.validationContext.getConfig().isDiscriminatorKeywordEnabled()) {
                 final Iterator<JsonNode> arrayElements = this.schemaNode.elements();
                 while (arrayElements.hasNext()) {
                     final ObjectNode allOfEntry = (ObjectNode) arrayElements.next();
@@ -103,7 +113,7 @@ public class AllOfValidator extends BaseJsonValidator {
     @Override
     public Set<ValidationMessage> walk(ExecutionContext executionContext, JsonNode node, JsonNode rootNode, JsonNodePath instanceLocation, boolean shouldValidateSchema) {
         if (shouldValidateSchema) {
-            return validate(executionContext, node, rootNode, instanceLocation);
+            return validate(executionContext, node, rootNode, instanceLocation, true);
         }
         for (JsonSchema schema : this.schemas) {
             // Walk through the schema

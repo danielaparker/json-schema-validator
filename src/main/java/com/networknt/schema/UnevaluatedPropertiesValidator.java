@@ -50,11 +50,9 @@ public class UnevaluatedPropertiesValidator extends BaseJsonValidator {
             return Collections.emptySet();
         }
 
-        debug(logger, node, rootNode, instanceLocation);
+        debug(logger, executionContext, node, rootNode, instanceLocation);
         // Get all the valid adjacent annotations
-        Predicate<JsonNodeAnnotation> validEvaluationPathFilter = a -> {
-            return executionContext.getResults().isValid(instanceLocation, a.getEvaluationPath());
-        };
+        Predicate<JsonNodeAnnotation> validEvaluationPathFilter = a -> executionContext.getResults().isValid(instanceLocation, a.getEvaluationPath());
 
         Predicate<JsonNodeAnnotation> adjacentEvaluationPathFilter = a -> a.getEvaluationPath()
                 .startsWith(this.evaluationPath.getParent());

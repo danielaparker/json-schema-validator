@@ -33,7 +33,7 @@ import com.networknt.schema.SpecVersion.VersionFlag;
 import com.networknt.schema.i18n.Locales;
 import com.networknt.schema.serialization.JsonMapperFactory;
 
-public class LocaleTest {
+class LocaleTest {
     private JsonSchema getSchema(SchemaValidatorsConfig config) {
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V201909);
         return factory.getSchema(
@@ -51,7 +51,7 @@ public class LocaleTest {
     @Test
     void executionContextLocale() throws JsonMappingException, JsonProcessingException {
         JsonNode rootNode = new ObjectMapper().readTree(" { \"foo\": 123 } ");
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
         JsonSchema jsonSchema = getSchema(config);
 
         Locale locale = Locales.findSupported("it;q=0.9,fr;q=1.0"); // fr
@@ -60,7 +60,7 @@ public class LocaleTest {
         executionContext.getExecutionConfig().setLocale(locale);
         Set<ValidationMessage> messages = jsonSchema.validate(executionContext, rootNode);
         assertEquals(1, messages.size());
-        assertEquals("$.foo: integer trouvé, string attendu", messages.iterator().next().getMessage());
+        assertEquals("/foo: integer trouvé, string attendu", messages.iterator().next().getMessage());
 
         locale = Locales.findSupported("it;q=1.0,fr;q=0.9"); // it
         executionContext = jsonSchema.createExecutionContext();
@@ -68,7 +68,7 @@ public class LocaleTest {
         executionContext.getExecutionConfig().setLocale(locale);
         messages = jsonSchema.validate(executionContext, rootNode);
         assertEquals(1, messages.size());
-        assertEquals("$.foo: integer trovato, string previsto", messages.iterator().next().getMessage());
+        assertEquals("/foo: integer trovato, string previsto", messages.iterator().next().getMessage());
     }
 
     /**
@@ -96,13 +96,12 @@ public class LocaleTest {
             assertEquals(1, messages.size());
             assertEquals("$: integer gefunden, object erwartet", messages.iterator().next().toString());
             
-            SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-            config.setLocale(Locale.ENGLISH);
+            SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().locale(Locale.ENGLISH).build();
             jsonSchema = JsonSchemaFactory.getInstance(VersionFlag.V7)
                     .getSchema(JsonMapperFactory.getInstance().readTree(schema), config);
             messages = jsonSchema.validate(input, InputFormat.JSON);
             assertEquals(1, messages.size());
-            assertEquals("$: integer found, object expected", messages.iterator().next().toString());
+            assertEquals(": integer found, object expected", messages.iterator().next().toString());
         } finally {
             Locale.setDefault(locale);
         }

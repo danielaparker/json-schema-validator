@@ -31,7 +31,7 @@ import com.networknt.schema.output.OutputUnit;
 /**
  * Tests for vocabulary support in meta schemas.
  */
-public class VocabularyTest {
+class VocabularyTest {
     @Test
     void noValidation() {
         String metaSchemaData = "{\r\n"
@@ -82,6 +82,7 @@ public class VocabularyTest {
         messages = schema.validate(inputDataNoValidation, InputFormat.JSON);
         assertEquals(1, messages.size());
         assertEquals("minimum", messages.iterator().next().getType());
+        assertEquals(VersionFlag.V202012, schema.getValidationContext().activeDialect().get());
     }
 
     @Test

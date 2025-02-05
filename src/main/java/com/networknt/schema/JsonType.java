@@ -16,6 +16,9 @@
 
 package com.networknt.schema;
 
+/**
+ * Indicates the type.
+ */
 public enum JsonType {
     OBJECT("object"),
     ARRAY("array"),
@@ -29,14 +32,23 @@ public enum JsonType {
     UNKNOWN("unknown"),
     UNION("union");
 
-    private String type;
+    private final String type;
 
-    private JsonType(String typeStr) {
-        type = typeStr;
+    /**
+     * Constructor.
+     * 
+     * @param typeStr the type value
+     */
+    JsonType(String typeStr) {
+        this.type = typeStr;
     }
 
+    /**
+     * Gets the type value.
+     */
+    @Override
     public String toString() {
-        return type;
+        return this.type;
     }
 
 }

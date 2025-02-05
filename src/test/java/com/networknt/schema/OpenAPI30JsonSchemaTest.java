@@ -12,12 +12,12 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-public class OpenAPI30JsonSchemaTest extends HTTPServiceSupport {
+class OpenAPI30JsonSchemaTest extends HTTPServiceSupport {
     protected ObjectMapper mapper = new ObjectMapper();
     protected JsonSchemaFactory validatorFactory = JsonSchemaFactory
-            .builder(JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4)).jsonMapper(mapper).build();
+            .builder(JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4)).build();
 
-    public OpenAPI30JsonSchemaTest() {
+    OpenAPI30JsonSchemaTest() {
     }
 
     private void runTestFile(String testCaseFile) throws Exception {
@@ -29,7 +29,6 @@ public class OpenAPI30JsonSchemaTest extends HTTPServiceSupport {
         for (int j = 0; j < testCases.size(); j++) {
             try {
                 JsonNode testCase = testCases.get(j);
-                SchemaValidatorsConfig config = new SchemaValidatorsConfig();
 
                 ArrayNode testNodes = (ArrayNode) testCase.get("tests");
                 for (int i = 0; i < testNodes.size(); i++) {
@@ -39,16 +38,17 @@ public class OpenAPI30JsonSchemaTest extends HTTPServiceSupport {
                     JsonNode typeLooseNode = test.get("isTypeLoose");
                     // Configure the schemaValidator to set typeLoose's value based on the test file,
                     // if test file do not contains typeLoose flag, use default value: true.
-                    config.setTypeLoose(typeLooseNode != null && typeLooseNode.asBoolean());
-                    config.setOpenAPI3StyleDiscriminators(true);
-                    JsonSchema schema = validatorFactory.getSchema(testCaseFileUri, testCase.get("schema"), config);
+                    SchemaValidatorsConfig.Builder configBuilder = SchemaValidatorsConfig.builder();
+                    configBuilder.typeLoose(typeLooseNode != null && typeLooseNode.asBoolean());
+                    configBuilder.discriminatorKeywordEnabled(true);
+                    JsonSchema schema = validatorFactory.getSchema(testCaseFileUri, testCase.get("schema"), configBuilder.build());
 
                     List<ValidationMessage> errors = new ArrayList<ValidationMessage>(schema.validate(node));
 
                     if (test.get("valid").asBoolean()) {
                         if (!errors.isEmpty()) {
                             System.out.println("---- test case failed ----");
-                            System.out.println("schema: " + schema.toString());
+                            System.out.println("schema: " + schema);
                             System.out.println("data: " + test.get("data"));
                             System.out.println("errors:");
                             for (ValidationMessage error : errors) {
@@ -84,7 +84,7 @@ public class OpenAPI30JsonSchemaTest extends HTTPServiceSupport {
     }
 
     @Test
-    public void testDiscriminatorMapping() throws Exception {
+    void testDiscriminatorMapping() throws Exception {
         runTestFile("openapi3/discriminator.json");
     }
 }

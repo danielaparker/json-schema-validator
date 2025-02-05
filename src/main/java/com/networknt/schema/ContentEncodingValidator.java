@@ -32,7 +32,7 @@ import java.util.Set;
  */
 public class ContentEncodingValidator extends BaseJsonValidator {
     private static final Logger logger = LoggerFactory.getLogger(ContentEncodingValidator.class);
-    private String contentEncoding;
+    private final String contentEncoding;
 
     /**
      * Constructor.
@@ -66,7 +66,7 @@ public class ContentEncodingValidator extends BaseJsonValidator {
     @Override
     public Set<ValidationMessage> validate(ExecutionContext executionContext, JsonNode node, JsonNode rootNode,
             JsonNodePath instanceLocation) {
-        debug(logger, node, rootNode, instanceLocation);
+        debug(logger, executionContext, node, rootNode, instanceLocation);
 
         // Ignore non-strings
         JsonType nodeType = TypeFactory.getValueNodeType(node, this.validationContext.getConfig());

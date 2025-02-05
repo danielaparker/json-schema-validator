@@ -50,15 +50,16 @@ public class ItemsValidator extends BaseJsonValidator {
 
         Boolean additionalItems = null;
 
-        this.tupleSchema = new ArrayList<>();
         JsonSchema foundSchema = null;
         JsonSchema foundAdditionalSchema = null;
         JsonNode additionalItemsSchemaNode = null;
 
         if (schemaNode.isObject() || schemaNode.isBoolean()) {
             foundSchema = validationContext.newSchema(schemaLocation, evaluationPath, schemaNode, parentSchema);
+            this.tupleSchema = Collections.emptyList();
         } else {
             int i = 0;
+            this.tupleSchema = new ArrayList<>(schemaNode.size());
             for (JsonNode s : schemaNode) {
                 this.tupleSchema.add(validationContext.newSchema(schemaLocation.append(i), evaluationPath.append(i),
                         s, parentSchema));
@@ -87,7 +88,7 @@ public class ItemsValidator extends BaseJsonValidator {
 
     @Override
     public Set<ValidationMessage> validate(ExecutionContext executionContext, JsonNode node, JsonNode rootNode, JsonNodePath instanceLocation) {
-        debug(logger, node, rootNode, instanceLocation);
+        debug(logger, executionContext, node, rootNode, instanceLocation);
 
         if (!node.isArray() && !this.validationContext.getConfig().isTypeLoose()) {
             // ignores non-arrays
@@ -124,7 +125,7 @@ public class ItemsValidator extends BaseJsonValidator {
         }
 
         boolean hasAdditionalItem = false;
-        SetView<ValidationMessage> errors = new SetView<ValidationMessage>();
+        SetView<ValidationMessage> errors = new SetView<>();
         if (node.isArray()) {
             int i = 0;
             for (JsonNode n : node) {

@@ -37,10 +37,18 @@ public class EnumValidator extends BaseJsonValidator implements JsonValidator {
     private final Set<JsonNode> nodes;
     private final String error;
 
+    static String asText(JsonNode node) {
+        if (node.isObject() || node.isArray() || node.isTextual()) {
+            // toString for isTextual is so that there are quotes
+            return node.toString();
+        }
+        return node.asText();
+    }
+    
     public EnumValidator(SchemaLocation schemaLocation, JsonNodePath evaluationPath, JsonNode schemaNode, JsonSchema parentSchema, ValidationContext validationContext) {
         super(schemaLocation, evaluationPath, schemaNode, parentSchema, ValidatorTypeCode.ENUM, validationContext);
         if (schemaNode != null && schemaNode.isArray()) {
-            nodes = new HashSet<JsonNode>();
+            nodes = new HashSet<>();
             StringBuilder sb = new StringBuilder();
 
             sb.append('[');
@@ -58,12 +66,12 @@ public class EnumValidator extends BaseJsonValidator implements JsonValidator {
                 }
 
                 sb.append(separator);
-                sb.append(n.asText());
+                sb.append(asText(n));
                 separator = ", ";
             }
 
             // check if the parent schema declares the fields as nullable
-            if (validationContext.getConfig().isHandleNullableField()) {
+            if (validationContext.getConfig().isNullableKeywordEnabled()) {
                 JsonNode nullable = parentSchema.getSchemaNode().get("nullable");
                 if (nullable != null && nullable.asBoolean()) {
                     nodes.add(NullNode.getInstance());
@@ -82,7 +90,7 @@ public class EnumValidator extends BaseJsonValidator implements JsonValidator {
     }
 
     public Set<ValidationMessage> validate(ExecutionContext executionContext, JsonNode node, JsonNode rootNode, JsonNodePath instanceLocation) {
-        debug(logger, node, rootNode, instanceLocation);
+        debug(logger, executionContext, node, rootNode, instanceLocation);
 
         if (node.isNumber()) {
             node = processNumberNode(node);
@@ -136,7 +144,7 @@ public class EnumValidator extends BaseJsonValidator implements JsonValidator {
         if (!hasNumber(node)) {
             return node;
         }
-        ArrayNode a = (ArrayNode) node.deepCopy();
+        ArrayNode a = node.deepCopy();
         for (int x = 0; x < a.size(); x++) {
             JsonNode v = a.get(x);
             if (v.isNumber()) {

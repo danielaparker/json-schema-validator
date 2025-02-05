@@ -26,7 +26,7 @@ import com.networknt.schema.SpecVersion.VersionFlag;
 /**
  * Test MultipleOfValidator validator.
  */
-public class MultipleOfValidatorTest {
+class MultipleOfValidatorTest {
     String schemaData = "{" +
             "  \"type\": \"object\"," +
             "  \"properties\": {" +
@@ -80,8 +80,7 @@ public class MultipleOfValidatorTest {
         assertEquals(2, messages.stream().filter(m -> "type".equals(m.getType())).count());
         
         // With type loose this has 3 multipleOf errors
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setTypeLoose(true);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().typeLoose(true).build();
         JsonSchema typeLoose = factory.getSchema(schemaData, config);
         messages = typeLoose.validate(inputData, InputFormat.JSON);
         assertEquals(3, messages.size());

@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class Issue687Test {
+class Issue687Test {
 
     @Test
     void testRoot() {
@@ -27,7 +27,7 @@ public class Issue687Test {
         assertEquals(PathType.LEGACY, PathType.DEFAULT);
     }
 
-    public static Stream<Arguments> appendTokens() {
+    static Stream<Arguments> appendTokens() {
         return Stream.of(
                 Arguments.of(PathType.LEGACY, "$.foo", "bar", "$.foo.bar"),
                 Arguments.of(PathType.LEGACY, "$.foo", "b.ar", "$.foo.b.ar"),
@@ -46,7 +46,7 @@ public class Issue687Test {
         );
     }
 
-    public static Stream<Arguments> appendIndexes() {
+    static Stream<Arguments> appendIndexes() {
         return Stream.of(
                 Arguments.of(PathType.LEGACY, "$.foo", 0, "$.foo[0]"),
                 Arguments.of(PathType.JSON_PATH, "$.foo", 0, "$.foo[0]"),
@@ -54,7 +54,7 @@ public class Issue687Test {
         );
     }
 
-    public static Stream<Arguments> validationMessages() {
+    static Stream<Arguments> validationMessages() {
         String schemaPath = "/schema/issue687.json";
         String content = "{ \"foo\": \"a\", \"b.ar\": 1, \"children\": [ { \"childFoo\": \"a\", \"c/hildBar\": 1 } ] }";
         return Stream.of(
@@ -80,8 +80,7 @@ public class Issue687Test {
     @ParameterizedTest
     @MethodSource("validationMessages")
     void testValidationMessage(PathType pathType, String schemaPath, String content, String[] expectedMessagePaths) throws JsonProcessingException {
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPathType(pathType);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().pathType(pathType).build();
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V201909);
         JsonSchema schema = factory.getSchema(Issue687Test.class.getResourceAsStream(schemaPath), config);
         Set<ValidationMessage> messages = schema.validate(new ObjectMapper().readTree(content));
@@ -91,7 +90,7 @@ public class Issue687Test {
         }
     }
 
-    public static Stream<Arguments> specialCharacterTests() {
+    static Stream<Arguments> specialCharacterTests() {
         return Stream.of(
                 Arguments.of(PathType.JSON_PATH, "'", "$['\\'']"),
                 Arguments.of(PathType.JSON_PATH, "\\\"", "$['\"']"),
@@ -114,8 +113,7 @@ public class Issue687Test {
     @MethodSource("specialCharacterTests")
     void testSpecialCharacters(PathType pathType, String propertyName, String expectedPath) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-        SchemaValidatorsConfig schemaValidatorsConfig = new SchemaValidatorsConfig();
-        schemaValidatorsConfig.setPathType(pathType);
+        SchemaValidatorsConfig schemaValidatorsConfig = SchemaValidatorsConfig.builder().pathType(pathType).build();
         JsonSchema schema = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V201909)
                 .getSchema(mapper.readTree("{\n" +
                         "    \"$schema\": \"https://json-schema.org/draft/2019-09/schema\",\n" +

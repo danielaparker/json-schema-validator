@@ -23,15 +23,14 @@ import org.junit.jupiter.api.Test;
 
 import com.networknt.schema.SpecVersion.VersionFlag;
 
-public class ExampleTest {
+class ExampleTest {
     @Test
-    public void exampleSchemaLocation() throws Exception {
+    void exampleSchemaLocation() {
         // This creates a schema factory that will use Draft 2012-12 as the default if $schema is not specified in the initial schema
         JsonSchemaFactory jsonSchemaFactory = JsonSchemaFactory.getInstance(VersionFlag.V202012, builder -> 
             builder.schemaMappers(schemaMappers -> schemaMappers.mapPrefix("https://www.example.org/", "classpath:schema/"))
         );
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPathType(PathType.JSON_POINTER);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
         JsonSchema schema = jsonSchemaFactory.getSchema(SchemaLocation.of("https://www.example.org/example-main.json"), config);
         String input = "{\r\n"
                 + "  \"DriverProperties\": {\r\n"
@@ -51,11 +50,10 @@ public class ExampleTest {
     }
 
     @Test
-    public void exampleClasspath() throws Exception {
+    void exampleClasspath() {
         // This creates a schema factory that will use Draft 2012-12 as the default if $schema is not specified in the initial schema
         JsonSchemaFactory jsonSchemaFactory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPathType(PathType.JSON_POINTER);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
         JsonSchema schema = jsonSchemaFactory.getSchema(SchemaLocation.of("classpath:schema/example-main.json"), config);
         String input = "{\r\n"
                 + "  \"DriverProperties\": {\r\n"

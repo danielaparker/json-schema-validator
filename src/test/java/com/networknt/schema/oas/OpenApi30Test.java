@@ -16,6 +16,8 @@
 package com.networknt.schema.oas;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 import java.util.Set;
@@ -27,7 +29,10 @@ import com.networknt.schema.DisallowUnknownJsonMetaSchemaFactory;
 import com.networknt.schema.InputFormat;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.OutputFormat;
+import com.networknt.schema.PathType;
 import com.networknt.schema.SchemaLocation;
+import com.networknt.schema.SchemaValidatorsConfig;
 import com.networknt.schema.SpecVersion.VersionFlag;
 import com.networknt.schema.ValidationMessage;
 
@@ -63,5 +68,54 @@ class OpenApi30Test {
         assertEquals("oneOf", list.get(0).getType());
         assertEquals("required", list.get(1).getType());
         assertEquals("bark", list.get(1).getProperty());
+    }
+
+    /**
+     * Tests that schema location with number in fragment can resolve.
+     */
+    @Test
+    void jsonPointerWithNumberInFragment() {
+        JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V7, builder -> builder
+                .metaSchema(OpenApi30.getInstance()).defaultMetaSchemaIri(OpenApi30.getInstance().getIri()));
+        JsonSchema schema = factory.getSchema(SchemaLocation.of(
+                "classpath:schema/oas/3.0/petstore.yaml#/paths/~1pet/post/responses/200/content/application~1json/schema"),
+                SchemaValidatorsConfig.builder().pathType(PathType.JSON_PATH).build());
+        assertNotNull(schema);
+        assertEquals("$.paths['/pet'].post.responses['200'].content['application/json'].schema",
+                schema.getEvaluationPath().toString());
+    }
+
+    /**
+     * Exclusive maximum true.
+     */
+    @Test
+    void exclusiveMaximum() {
+        String schemaData = "{\r\n"
+                + "  \"type\": \"number\",\r\n"
+                + "  \"minimum\": 0,\r\n"
+                + "  \"maximum\": 100,\r\n"
+                + "  \"exclusiveMaximum\": true\r\n"
+                + "}\r\n";
+        JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V7, builder -> builder
+                .metaSchema(OpenApi30.getInstance()).defaultMetaSchemaIri(OpenApi30.getInstance().getIri()));
+        JsonSchema schema = factory.getSchema(schemaData);
+        assertFalse(schema.validate("100", InputFormat.JSON, OutputFormat.BOOLEAN));
+    }
+
+    /**
+     * Exclusive minimum true.
+     */
+    @Test
+    void exclusiveMinimum() {
+        String schemaData = "{\r\n"
+                + "  \"type\": \"number\",\r\n"
+                + "  \"minimum\": 0,\r\n"
+                + "  \"maximum\": 100,\r\n"
+                + "  \"exclusiveMinimum\": true\r\n"
+                + "}\r\n";
+        JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V7, builder -> builder
+                .metaSchema(OpenApi30.getInstance()).defaultMetaSchemaIri(OpenApi30.getInstance().getIri()));
+        JsonSchema schema = factory.getSchema(schemaData);
+        assertFalse(schema.validate("0", InputFormat.JSON, OutputFormat.BOOLEAN));
     }
 }

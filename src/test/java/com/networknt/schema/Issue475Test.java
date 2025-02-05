@@ -27,7 +27,7 @@ import com.networknt.schema.serialization.JsonMapperFactory;
 /**
  * Tests for validation of schema against meta schema.
  */
-public class Issue475Test {
+class Issue475Test {
     private static final String VALID_INPUT = "{  \n"
             + "  \"type\": \"object\",  \n"
             + "  \"properties\": {    \n"
@@ -49,11 +49,10 @@ public class Issue475Test {
             + "}";
 
     @Test
-    public void draft4() throws Exception {
+    void draft4() throws Exception {
         JsonSchemaFactory jsonSchemaFactory = JsonSchemaFactory.getInstance(VersionFlag.V4, builder -> builder
                 .schemaMappers(schemaMappers -> schemaMappers.mapPrefix("http://json-schema.org", "classpath:")));
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPathType(PathType.JSON_POINTER);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
         JsonSchema schema = jsonSchemaFactory.getSchema(SchemaLocation.of(SchemaId.V4), config);
 
         Set<ValidationMessage> assertions = schema.validate(JsonMapperFactory.getInstance().readTree(INVALID_INPUT));
@@ -64,11 +63,10 @@ public class Issue475Test {
     }
     
     @Test
-    public void draft6() throws Exception {
+    void draft6() throws Exception {
         JsonSchemaFactory jsonSchemaFactory = JsonSchemaFactory.getInstance(VersionFlag.V6, builder -> builder
                 .schemaMappers(schemaMappers -> schemaMappers.mapPrefix("http://json-schema.org", "classpath:")));
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPathType(PathType.JSON_POINTER);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
         JsonSchema schema = jsonSchemaFactory.getSchema(SchemaLocation.of(SchemaId.V6), config);
 
         Set<ValidationMessage> assertions = schema.validate(JsonMapperFactory.getInstance().readTree(INVALID_INPUT));
@@ -79,11 +77,10 @@ public class Issue475Test {
     }
 
     @Test
-    public void draft7() throws Exception {
+    void draft7() throws Exception {
         JsonSchemaFactory jsonSchemaFactory = JsonSchemaFactory.getInstance(VersionFlag.V7, builder -> builder
                 .schemaMappers(schemaMappers -> schemaMappers.mapPrefix("http://json-schema.org", "classpath:")));
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPathType(PathType.JSON_POINTER);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
         JsonSchema schema = jsonSchemaFactory.getSchema(SchemaLocation.of(SchemaId.V7), config);
 
         Set<ValidationMessage> assertions = schema.validate(JsonMapperFactory.getInstance().readTree(INVALID_INPUT));
@@ -94,11 +91,10 @@ public class Issue475Test {
     }
     
     @Test
-    public void draft201909() throws Exception {
+    void draft201909() throws Exception {
         JsonSchemaFactory jsonSchemaFactory = JsonSchemaFactory.getInstance(VersionFlag.V201909, builder -> builder
                 .schemaMappers(schemaMappers -> schemaMappers.mapPrefix("https://json-schema.org", "classpath:")));
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPathType(PathType.JSON_POINTER);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
         JsonSchema schema = jsonSchemaFactory.getSchema(SchemaLocation.of(SchemaId.V201909), config);
 
         Set<ValidationMessage> assertions = schema.validate(JsonMapperFactory.getInstance().readTree(INVALID_INPUT));
@@ -107,13 +103,12 @@ public class Issue475Test {
         assertions = schema.validate(JsonMapperFactory.getInstance().readTree(VALID_INPUT));
         assertEquals(0, assertions.size());
     }
-    
+
     @Test
-    public void draft202012() throws Exception {
+    void draft202012() throws Exception {
         JsonSchemaFactory jsonSchemaFactory = JsonSchemaFactory.getInstance(VersionFlag.V202012, builder -> builder
                 .schemaMappers(schemaMappers -> schemaMappers.mapPrefix("https://json-schema.org", "classpath:")));
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPathType(PathType.JSON_POINTER);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
         JsonSchema schema = jsonSchemaFactory.getSchema(SchemaLocation.of(SchemaId.V202012), config);
 
         Set<ValidationMessage> assertions = schema.validate(JsonMapperFactory.getInstance().readTree(INVALID_INPUT));

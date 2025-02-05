@@ -17,7 +17,11 @@ package com.networknt.schema;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
+
+import com.networknt.schema.SpecVersion.VersionFlag;
 
 class SchemaLocationTest {
 
@@ -71,6 +75,24 @@ class SchemaLocationTest {
     }
 
     @Test
+    void schemaLocationResolveHashInFragment() {
+        SchemaLocation schemaLocation = SchemaLocation.of("https://example.com/schemas/address#street_address");
+        assertEquals(
+                "https://example.com/schemas/address#/paths/~1subscribe/post/callbacks/myEvent/{request.body#~1callbackUrl}/post/requestBody/content/application~1json/schema",
+                SchemaLocation.resolve(schemaLocation,
+                        "#/paths/~1subscribe/post/callbacks/myEvent/{request.body#~1callbackUrl}/post/requestBody/content/application~1json/schema"));
+    }
+
+    @Test
+    void schemaLocationResolvePathHashInFragment() {
+        SchemaLocation schemaLocation = SchemaLocation.of("https://example.com/schemas/address#street_address");
+        assertEquals(
+                "https://example.com/schemas/hello#/paths/~1subscribe/post/callbacks/myEvent/{request.body#~1callbackUrl}/post/requestBody/content/application~1json/schema",
+                SchemaLocation.resolve(schemaLocation,
+                        "hello#/paths/~1subscribe/post/callbacks/myEvent/{request.body#~1callbackUrl}/post/requestBody/content/application~1json/schema"));
+    }
+
+    @Test
     void schemaLocationResolveEmptyString() {
         SchemaLocation schemaLocation = SchemaLocation.of("https://example.com/schemas/address#street_address");
         assertEquals("https://example.com/schemas/address#", SchemaLocation.resolve(schemaLocation, ""));
@@ -99,6 +121,26 @@ class SchemaLocationTest {
         SchemaLocation schemaLocation = SchemaLocation.of("https://example.com/schemas/address#street_address");
         assertEquals("https://example.com/schemas/address#/allOf/10/properties",
                 schemaLocation.resolve("#/allOf/10/properties").toString());
+    }
+
+    @Test
+    void resolveHashInFragment() {
+        SchemaLocation schemaLocation = SchemaLocation.of("https://example.com/schemas/address#street_address");
+        assertEquals(
+                "https://example.com/schemas/address#/paths/~1subscribe/post/callbacks/myEvent/{request.body#~1callbackUrl}/post/requestBody/content/application~1json/schema",
+                schemaLocation.resolve(
+                        "#/paths/~1subscribe/post/callbacks/myEvent/{request.body#~1callbackUrl}/post/requestBody/content/application~1json/schema")
+                        .toString());
+    }
+
+    @Test
+    void resolvePathHashInFragment() {
+        SchemaLocation schemaLocation = SchemaLocation.of("https://example.com/schemas/address#street_address");
+        assertEquals(
+                "https://example.com/schemas/hello#/paths/~1subscribe/post/callbacks/myEvent/{request.body#~1callbackUrl}/post/requestBody/content/application~1json/schema",
+                schemaLocation.resolve(
+                        "hello#/paths/~1subscribe/post/callbacks/myEvent/{request.body#~1callbackUrl}/post/requestBody/content/application~1json/schema")
+                        .toString());
     }
 
     @Test
@@ -174,6 +216,30 @@ class SchemaLocationTest {
     }
 
     @Test
+    void shouldLoadEscapedFragment() {
+        JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
+        JsonSchema schema = factory.getSchema(SchemaLocation
+                .of("classpath:schema/example-escaped.yaml#/paths/~1users/post/requestBody/application~1json/schema"));
+        Set<ValidationMessage> result = schema.validate("1", InputFormat.JSON);
+        assertFalse(result.isEmpty());
+        result = schema.validate("{}", InputFormat.JSON);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void escapedJsonPointerFragment() {
+        JsonNodePath fragment = SchemaLocation.Fragment.of("/paths/~1users/post/requestBody/application~1json/schema");
+        assertEquals("/paths/~1users/post/requestBody/application~1json/schema", fragment.toString());
+        assertEquals(6, fragment.getNameCount());
+        assertEquals("paths", fragment.getName(0));
+        assertEquals("/users", fragment.getName(1));
+        assertEquals("post", fragment.getName(2));
+        assertEquals("requestBody", fragment.getName(3));
+        assertEquals("application/json", fragment.getName(4));
+        assertEquals("schema", fragment.getName(5));
+    }
+
+    @Test
     void ofNull() {
         assertNull(SchemaLocation.of(null));
     }
@@ -201,6 +267,30 @@ class SchemaLocationTest {
     void hashCodeEquals() {
         assertEquals(SchemaLocation.of("https://example.com/schemas/address/#street_address").hashCode(),
                 SchemaLocation.of("https://example.com/schemas/address/#street_address").hashCode());
+    }
+
+    @Test
+    void hashInFragment() {
+        SchemaLocation location = SchemaLocation.of("https://example.com/example.yaml#/paths/~1subscribe/post/callbacks/myEvent/{request.body#~1callbackUrl}/post/requestBody/content/application~1json/schema");
+        assertEquals("/paths/~1subscribe/post/callbacks/myEvent/{request.body#~1callbackUrl}/post/requestBody/content/application~1json/schema", location.getFragment().toString());
+    }
+
+    @Test
+    void trailingHash() {
+        SchemaLocation location = SchemaLocation.of("https://example.com/example.yaml#");
+        assertEquals("", location.getFragment().toString());
+    }
+
+    @Test
+    void equalsEqualsNoFragment() {
+        assertEquals(SchemaLocation.of("https://example.com/example.yaml#"),
+                SchemaLocation.of("https://example.com/example.yaml"));
+    }
+
+    @Test
+    void equalsEqualsNoFragmentToString() {
+        assertEquals(SchemaLocation.of("https://example.com/example.yaml#").toString(),
+                SchemaLocation.of("https://example.com/example.yaml").toString());
     }
 
 }

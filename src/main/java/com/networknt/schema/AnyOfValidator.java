@@ -31,13 +31,22 @@ public class AnyOfValidator extends BaseJsonValidator {
     private static final Logger logger = LoggerFactory.getLogger(AnyOfValidator.class);
     private static final String DISCRIMINATOR_REMARK = "and the discriminator-selected candidate schema didn't pass validation";
 
-    private final List<JsonSchema> schemas = new ArrayList<>();
+    private final List<JsonSchema> schemas;
 
     private Boolean canShortCircuit = null;
 
     public AnyOfValidator(SchemaLocation schemaLocation, JsonNodePath evaluationPath, JsonNode schemaNode, JsonSchema parentSchema, ValidationContext validationContext) {
         super(schemaLocation, evaluationPath, schemaNode, parentSchema, ValidatorTypeCode.ANY_OF, validationContext);
+        if (!schemaNode.isArray()) {
+            JsonType nodeType = TypeFactory.getValueNodeType(schemaNode, this.validationContext.getConfig());
+            throw new JsonSchemaException(message().instanceNode(schemaNode)
+                    .instanceLocation(schemaLocation.getFragment())
+                    .messageKey("type")
+                    .arguments(nodeType.toString(), "array")
+                    .build());
+        }
         int size = schemaNode.size();
+        this.schemas = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
             this.schemas.add(validationContext.newSchema(schemaLocation.append(i), evaluationPath.append(i),
                     schemaNode.get(i), parentSchema));
@@ -45,18 +54,18 @@ public class AnyOfValidator extends BaseJsonValidator {
     }
 
     @Override
-    public Set<ValidationMessage> validate(ExecutionContext executionContext, JsonNode node, JsonNode rootNode, JsonNodePath instanceLocation) {
-        debug(logger, node, rootNode, instanceLocation);
+    public Set<ValidationMessage> validate(ExecutionContext executionContext, JsonNode node, JsonNode rootNode,
+            JsonNodePath instanceLocation) {
+        return validate(executionContext, node, rootNode, instanceLocation, false);
+    }
 
-        // get the Validator state object storing validation data
-        ValidatorState state = executionContext.getValidatorState();
+    protected Set<ValidationMessage> validate(ExecutionContext executionContext, JsonNode node, JsonNode rootNode,
+            JsonNodePath instanceLocation, boolean walk) {
+        debug(logger, executionContext, node, rootNode, instanceLocation);
 
-        if (this.validationContext.getConfig().isOpenAPI3StyleDiscriminators()) {
+        if (this.validationContext.getConfig().isDiscriminatorKeywordEnabled()) {
             executionContext.enterDiscriminatorContext(new DiscriminatorContext(), instanceLocation);
         }
-
-        boolean initialHasMatchedNode = state.hasMatchedNode();
-
         SetView<ValidationMessage> allErrors = null;
 
         int numberOfValidSubSchemas = 0;
@@ -67,8 +76,6 @@ public class AnyOfValidator extends BaseJsonValidator {
                 executionContext.setFailFast(false);
                 for (JsonSchema schema : this.schemas) {
                     Set<ValidationMessage> errors = Collections.emptySet();
-                    state.setMatchedNode(initialHasMatchedNode);
-
                     TypeValidator typeValidator = schema.getTypeValidator();
                     if (typeValidator != null) {
                         // If schema has type validator and node type doesn't match with schemaType then
@@ -82,7 +89,7 @@ public class AnyOfValidator extends BaseJsonValidator {
                             continue;
                         }
                     }
-                    if (!state.isWalkEnabled()) {
+                    if (!walk) {
                         errors = schema.validate(executionContext, node, rootNode, instanceLocation);
                     } else {
                         errors = schema.walk(executionContext, node, rootNode, instanceLocation, true);
@@ -90,22 +97,17 @@ public class AnyOfValidator extends BaseJsonValidator {
 
                     // check if any validation errors have occurred
                     if (errors.isEmpty()) {
-                        // check whether there are no errors HOWEVER we have validated the exact
-                        // validator
-                        if (!state.hasMatchedNode()) {
-                            continue;
-                        }
                         // we found a valid subschema, so increase counter
                         numberOfValidSubSchemas++;
                     }
 
-                    if (errors.isEmpty() && (!this.validationContext.getConfig().isOpenAPI3StyleDiscriminators())
+                    if (errors.isEmpty() && (!this.validationContext.getConfig().isDiscriminatorKeywordEnabled())
                             && canShortCircuit() && canShortCircuit(executionContext)) {
                         // Clear all errors. Note that this is checked in finally.
                         allErrors = null;
                         // return empty errors.
                         return errors;
-                    } else if (this.validationContext.getConfig().isOpenAPI3StyleDiscriminators()) {
+                    } else if (this.validationContext.getConfig().isDiscriminatorKeywordEnabled()) {
                         DiscriminatorContext currentDiscriminatorContext = executionContext.getCurrentDiscriminatorContext();
                         if (currentDiscriminatorContext.isDiscriminatorMatchFound()
                                 || currentDiscriminatorContext.isDiscriminatorIgnore()) {
@@ -138,7 +140,7 @@ public class AnyOfValidator extends BaseJsonValidator {
                 executionContext.setFailFast(failFast);
             }
 
-            if (this.validationContext.getConfig().isOpenAPI3StyleDiscriminators()
+            if (this.validationContext.getConfig().isDiscriminatorKeywordEnabled()
                     && executionContext.getCurrentDiscriminatorContext().isActive()
                     && !executionContext.getCurrentDiscriminatorContext().isDiscriminatorIgnore()) {
                 return Collections.singleton(message().instanceNode(node).instanceLocation(instanceLocation)
@@ -148,11 +150,8 @@ public class AnyOfValidator extends BaseJsonValidator {
                         .build());
             }
         } finally {
-            if (this.validationContext.getConfig().isOpenAPI3StyleDiscriminators()) {
+            if (this.validationContext.getConfig().isDiscriminatorKeywordEnabled()) {
                 executionContext.leaveDiscriminatorContextImmediately(instanceLocation);
-            }
-            if (allErrors == null || allErrors.isEmpty()) {
-                state.setMatchedNode(true);
             }
         }
         if (numberOfValidSubSchemas >= 1) {
@@ -164,7 +163,7 @@ public class AnyOfValidator extends BaseJsonValidator {
     @Override
     public Set<ValidationMessage> walk(ExecutionContext executionContext, JsonNode node, JsonNode rootNode, JsonNodePath instanceLocation, boolean shouldValidateSchema) {
         if (shouldValidateSchema) {
-            return validate(executionContext, node, rootNode, instanceLocation);
+            return validate(executionContext, node, rootNode, instanceLocation, true);
         }
         for (JsonSchema schema : this.schemas) {
             schema.walk(executionContext, node, rootNode, instanceLocation, false);

@@ -28,7 +28,7 @@ import com.networknt.schema.SpecVersion.VersionFlag;
 /**
  * AdditionalPropertiesValidatorTest.
  */
-public class AdditionalPropertiesValidatorTest {
+class AdditionalPropertiesValidatorTest {
     /**
      * Tests that the message contains the correct values when additional properties
      * schema is false.
@@ -46,8 +46,7 @@ public class AdditionalPropertiesValidatorTest {
                 + "  \"additionalProperties\": false\r\n"
                 + "}";
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPathType(PathType.JSON_POINTER);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
         JsonSchema schema = factory.getSchema(schemaData, config);
         String inputData = "{\r\n"
                 + "  \"foo\":\"hello\",\r\n"
@@ -82,8 +81,7 @@ public class AdditionalPropertiesValidatorTest {
                 + "  \"additionalProperties\": { \"type\": \"number\" }\r\n"
                 + "}";
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPathType(PathType.JSON_POINTER);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().build();
         JsonSchema schema = factory.getSchema(schemaData, config);
         String inputData = "{\r\n"
                 + "  \"foo\":\"hello\",\r\n"

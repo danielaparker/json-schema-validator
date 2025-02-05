@@ -16,13 +16,19 @@
 
 package com.networknt.schema;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.networknt.schema.utils.SetView;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.networknt.schema.utils.SetView;
 
 /**
  * {@link JsonValidator} for oneOf.
@@ -30,13 +36,22 @@ import java.util.*;
 public class OneOfValidator extends BaseJsonValidator {
     private static final Logger logger = LoggerFactory.getLogger(OneOfValidator.class);
 
-    private final List<JsonSchema> schemas = new ArrayList<>();
+    private final List<JsonSchema> schemas;
 
     private Boolean canShortCircuit = null;
 
     public OneOfValidator(SchemaLocation schemaLocation, JsonNodePath evaluationPath, JsonNode schemaNode, JsonSchema parentSchema, ValidationContext validationContext) {
         super(schemaLocation, evaluationPath, schemaNode, parentSchema, ValidatorTypeCode.ONE_OF, validationContext);
+        if (!schemaNode.isArray()) {
+            JsonType nodeType = TypeFactory.getValueNodeType(schemaNode, this.validationContext.getConfig());
+            throw new JsonSchemaException(message().instanceNode(schemaNode)
+                    .instanceLocation(schemaLocation.getFragment())
+                    .messageKey("type")
+                    .arguments(nodeType.toString(), "array")
+                    .build());
+        }
         int size = schemaNode.size();
+        this.schemas = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
             JsonNode childNode = schemaNode.get(i);
             this.schemas.add(validationContext.newSchema( schemaLocation.append(i), evaluationPath.append(i), childNode, parentSchema));
@@ -44,16 +59,16 @@ public class OneOfValidator extends BaseJsonValidator {
     }
 
     @Override
-    public Set<ValidationMessage> validate(ExecutionContext executionContext, JsonNode node, JsonNode rootNode, JsonNodePath instanceLocation) {
+    public Set<ValidationMessage> validate(ExecutionContext executionContext, JsonNode node, JsonNode rootNode,
+            JsonNodePath instanceLocation) {
+        return validate(executionContext, node, rootNode, instanceLocation, false);
+    }
+
+    protected Set<ValidationMessage> validate(ExecutionContext executionContext, JsonNode node, JsonNode rootNode,
+            JsonNodePath instanceLocation, boolean walk) {
         Set<ValidationMessage> errors = null;
 
-        debug(logger, node, rootNode, instanceLocation);
-
-        ValidatorState state = executionContext.getValidatorState();
-
-        // this is a complex validator, we set the flag to true
-        state.setComplexValidator(true);
-
+        debug(logger, executionContext, node, rootNode, instanceLocation);
         int numberOfValidSchema = 0;
         int index = 0;
         SetView<ValidationMessage> childErrors = null;
@@ -63,35 +78,31 @@ public class OneOfValidator extends BaseJsonValidator {
         boolean failFast = executionContext.isFailFast();
         try {
             DiscriminatorValidator discriminator = null;
-            if (this.validationContext.getConfig().isOpenAPI3StyleDiscriminators()) {
+            if (this.validationContext.getConfig().isDiscriminatorKeywordEnabled()) {
                 DiscriminatorContext discriminatorContext = new DiscriminatorContext();
                 executionContext.enterDiscriminatorContext(discriminatorContext, instanceLocation);
-                
+
                 // check if discriminator present
                 discriminator = (DiscriminatorValidator) this.getParentSchema().getValidators().stream()
                         .filter(v -> "discriminator".equals(v.getKeyword())).findFirst().orElse(null);
+                if (discriminator != null) {
+                    // this is just to make the discriminator context active
+                    discriminatorContext.registerDiscriminator(discriminator.getSchemaLocation(),
+                            (ObjectNode) discriminator.getSchemaNode());
+                }
             }
             executionContext.setFailFast(false);
             for (JsonSchema schema : this.schemas) {
                 Set<ValidationMessage> schemaErrors = Collections.emptySet();
-
-                // Reset state in case the previous validator did not match
-                state.setMatchedNode(true);
-
-                if (!state.isWalkEnabled()) {
+                if (!walk) {
                     schemaErrors = schema.validate(executionContext, node, rootNode, instanceLocation);
                 } else {
                     schemaErrors = schema.walk(executionContext, node, rootNode, instanceLocation,
-                            state.isValidationEnabled());
+                            true);
                 }
 
                 // check if any validation errors have occurred
                 if (schemaErrors.isEmpty()) {
-                    // check whether there are no errors HOWEVER we have validated the exact
-                    // validator
-                    if (!state.hasMatchedNode()) {
-                        continue;
-                    }
                     numberOfValidSchema++;
                     if (indexes == null) {
                         indexes = new ArrayList<>();
@@ -105,7 +116,7 @@ public class OneOfValidator extends BaseJsonValidator {
                     break;
                 }
                 
-                if (this.validationContext.getConfig().isOpenAPI3StyleDiscriminators()) {
+                if (this.validationContext.getConfig().isDiscriminatorKeywordEnabled()) {
                     // The discriminator will cause all messages other than the one with the
                     // matching discriminator to be discarded. Note that the discriminator cannot
                     // affect the actual validation result.
@@ -135,7 +146,8 @@ public class OneOfValidator extends BaseJsonValidator {
                         // found is null triggers on the correct schema
                         childErrors = new SetView<>();
                         childErrors.union(schemaErrors);
-                    } else if (currentDiscriminatorContext.isDiscriminatorIgnore()) {
+                    } else if (currentDiscriminatorContext.isDiscriminatorIgnore()
+                            || !currentDiscriminatorContext.isActive()) {
                         // This is the normal handling when discriminators aren't enabled
                         if (childErrors == null) {
                             childErrors = new SetView<>();
@@ -152,7 +164,7 @@ public class OneOfValidator extends BaseJsonValidator {
                 index++;
             }
 
-            if (this.validationContext.getConfig().isOpenAPI3StyleDiscriminators()
+            if (this.validationContext.getConfig().isDiscriminatorKeywordEnabled()
                     && (discriminator != null || executionContext.getCurrentDiscriminatorContext().isActive())
                     && !executionContext.getCurrentDiscriminatorContext().isDiscriminatorMatchFound()
                     && !executionContext.getCurrentDiscriminatorContext().isDiscriminatorIgnore()) {
@@ -166,7 +178,7 @@ public class OneOfValidator extends BaseJsonValidator {
             // Restore flag
             executionContext.setFailFast(failFast);
 
-            if (this.validationContext.getConfig().isOpenAPI3StyleDiscriminators()) {
+            if (this.validationContext.getConfig().isDiscriminatorKeywordEnabled()) {
                 executionContext.leaveDiscriminatorContextImmediately(instanceLocation);
             }
         }
@@ -186,15 +198,6 @@ public class OneOfValidator extends BaseJsonValidator {
                 errors = Collections.singleton(message);
             }
         }
-
-        // Make sure to signal parent handlers we matched
-        if (errors == null || errors.isEmpty()) {
-            state.setMatchedNode(true);
-        }
-
-        // reset the ValidatorState object
-        resetValidatorState(executionContext);
-
         return errors != null ? errors : Collections.emptySet();
     }
 
@@ -224,17 +227,11 @@ public class OneOfValidator extends BaseJsonValidator {
         return this.canShortCircuit;
     }
 
-    private static void resetValidatorState(ExecutionContext executionContext) {
-        ValidatorState state = executionContext.getValidatorState();
-        state.setComplexValidator(false);
-        state.setMatchedNode(true);
-    }
-
     @Override
     public Set<ValidationMessage> walk(ExecutionContext executionContext, JsonNode node, JsonNode rootNode, JsonNodePath instanceLocation, boolean shouldValidateSchema) {
         HashSet<ValidationMessage> validationMessages = new LinkedHashSet<>();
         if (shouldValidateSchema) {
-            validationMessages.addAll(validate(executionContext, node, rootNode, instanceLocation));
+            validationMessages.addAll(validate(executionContext, node, rootNode, instanceLocation, true));
         } else {
             for (JsonSchema schema : this.schemas) {
                 schema.walk(executionContext, node, rootNode, instanceLocation, shouldValidateSchema);

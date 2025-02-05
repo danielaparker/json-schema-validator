@@ -11,6 +11,140 @@ This project does not adhere to [Semantic Versioning](https://semver.org/) and m
 
 ### Changed
 
+## 1.5.5 - 2025-01-14
+
+### Added
+
+### Changed
+
+- Fix custom error message for union type (#1138) Thanks @justin-tay
+- Update itu 1.10.2 -> 1.10.3 (#1143) Thanks @MelvinFrohike
+
+## 1.5.4 - 2024-11-24
+
+### Added
+
+### Changed
+
+- Fix nullable issue (#1134) Thanks @justin-tay
+- fixes #1131 pom.xml scm url URI is invalid (#1132)
+- Remove warning for exclusiveMinimum and exclusiveMaximum for Draft 4 (#1127) Thanks @justin-tay
+- Clean up code (#1130) Thanks @jkosternl
+- Test Code Cleanup (#1128) Thanks @jkosternl
+
+## 1.5.3 - 2024-10-31
+
+### Added
+
+### Changed
+
+- Upgrade many libraries (#1122) Thanks @jkosternl
+- Fix hasAdjacentKeywordInEvaluationPath optimisation (#1124) Thanks @justin-tay
+- Correct URL to jsonschema-validation-output-machines.md documentation (#1121) Thanks @jkosternl
+
+
+## 1.5.2 - 2024-09-19
+
+### Added
+
+### Changed
+
+- Fix exclusiveMinimum and exclusiveMaximum for OpenAPI 3.0 (#1115) Thanks @justin-tay
+- Bump jackson-databind from 2.17.1 to 2.17.2 (#1111) Thanks @justin-tay
+- Bump io.undertow:undertow-core from 2.2.33.Final to 2.2.35.Final (#1110) Thanks @justin-tay
+- Fix PatternValidator to not log for fail fast (#1106) Thanks @justin-tay
+
+## 1.5.1 - 2024-07-25
+
+### Added
+
+### Changed
+
+- Fix enum validator messages for object, array and text nodes (#1095) Thanks @justin-tay
+- Optimize hasAdjacentKeywordInEvaluationPath (#1092) Thanks @justin-tay
+
+## 1.5.0 - 2024-07-05
+
+### Added
+
+### Changed
+
+- Improve performance and fixes (#1086) Thanks @justin-tay
+- Fix activeDialect for custom meta schema (#1084) Thanks @justin-tay
+- Remove alternate custom error message mechanism (#1083) Thanks @justin-tay
+- Fix evaluationPath and schemaLocation in getSubSchema for number in fragment (#1081) Thanks @justin-tay
+- Bump io.undertow:undertow-core from 2.2.31.Final to 2.2.33.Final (#1080) Thanks @justin-tay
+- Add security considerations and mitigations (#1079) Thanks @justin-tay
+- Fix oneOf when discriminator enabled but no discriminator (#1078) Thanks @justin-tay
+- Fix json pointer with number in fragment (#1077) Thanks @justin-tay
+
+
+## 1.4.3 - 2024-06-25
+
+### Added
+
+### Changed
+
+- Fix schema location with hash in fragment (#1075) Thanks @justin-tay
+
+## 1.4.2 - 2024-06-21
+
+### Added
+
+### Changed
+
+- Resolve javadoc warning messages #1073
+- Fix iri, iri-reference, uri and uri-reference (#1071) Thanks @justin-tay
+- fixes #1072 Downgrade maven-source-plugin to 3.2.1
+
+## 1.4.1 - 2024-06-20
+
+### Added
+
+### Changed
+
+- Add builder for SchemaValidatorsConfig (#1068) Thanks @justin-tay
+- Improve documentation on regular expressions (#1066) Thanks @justin-tay
+- Adds JsonNodeReader (#1065) Thanks @justin-tay
+- Bump jackson-databind from 2.17.0 to 2.17.1 (#1064) Thanks @justin-tay
+- Deprecate validateAndCollect in favor of explicitly calling loadCollectors (#1063) Thanks @justin-tay
+- Set initial array list size (#1062) Thanks @justin-tay
+- Refactor to make more fields final (#1060) Thanks @justin-tay
+- Deprecate config to disable unevaluatedItems and unevaluatedProperties evaluation as no longer needed (#1059) Thanks @justin-tay
+- Add GraalJS regular expression and factory implementation (#1058) Thanks @justin-tay
+- Allow customization of const message to include input value (#1057) Thanks @justin-tay
+- Optimize logging by creating a debug flag (#1054) Thanks @justin-tay
+- Release delegate held by cached supplier (#1056) Thanks @justin-tay
+- Remove incorrect logic for oneOf, anyOf and properties (#1053) Thanks @justin-tay
+- Detect invalid escape for ecmascript (#1049) Thanks @justin-tay
+- Fix uri and uri-reference incorrect validation failure (#1052) Thanks @justin-tay
+- Fix for incorrect validation failure for %-encoded '[' and ']' characters. (#1051) Thanks @4naesthetic
+- Optimize getValueNodeType (#1048) Thanks @justin-tay
+- Allow tracking of json node location information (#1046) Thanks @justin-tay
+- Update example in javadoc for JsonMetaSchema builder (#1043) Thanks @khouari1
+- Validate allOf, oneOf and anyOf contains array (#1039) Thanks @justin-tay
+- Update JSON Schema badges (#1041) Thanks @justin-tay
+- Fix schema location for escaped json pointer (#1038) Thanks @justin-tay
+- Allow customization of assertion for outputunit (#1033) Thanks @justin-tay
+- change example.com connection error IOException (#1028)
+- Fix broken link in README (#1029) Thanks @danielaparker
+- Update dependency versions (#1023) Thanks @justin-tay
+- upgrade slf4j to 2.0.13
+- upgrade jackson to 2.17.0
+- Add options to control caching of schemas (#1018) Thanks @justin-tay
+- Update github actions (#1022) Thanks @justin-tay
+- Fix code example in README.md (#1020) Thanks @tombentley
+- Fix the broken link to if-then-else.json (#1014) Thanks @emmanuel-ferdman
+- Changed defs to $defs in compatibility.md (#1013) Thanks @danielaparker
+- Add OpenAPI JsonMetaSchema (#1011) Thanks @justin-tay
+- Fix walk for if validator with validation (#1010) Thanks @justin-tay
+- Fix 2012-12 typo (#1008) Thanks @justin-tay
+- Check type validator is of correct class (#1003) Thanks @justin-tay
+- Fix root classpath resolve (#1000) Thanks @justin-tay
+- upgrade undertow to 2.2.31.Final (#998)
+- Walk items schema instead of walking instance data (#993) Thanks @justin-tay
+
+
 ## 1.4.0 - 2024-03-16
 
 ### Added
@@ -107,7 +241,7 @@ With #915 and #922 implemented, it breaks the API. Users code might need to chan
 ### Changed
 
 - fixes #906 Cannot load JSON schemas with URN value in id field. Thanks @martin-sladecek
-- upgrade logback to 1.4.14 
+- upgrade logback to 1.4.14
 - fixes #896 Refactor to remove ThreadLocal usage. Thanks @justin-tay
 - upgrade slf4j to 2.0.9
 - fixes #900 compile configuration is depricated. Thanks @saurvkmr
@@ -120,11 +254,11 @@ With #915 and #922 implemented, it breaks the API. Users code might need to chan
 - fixes #886 Fix invalid class passed to getLogger. Thanks @brempusz
 - upgrade jackson to 2.15.3
 - fixes #883 docs clarify commons-lang3 exclusion only required for 1.0.81. Thanks @JonasGroeger
-- fixes #866 Fix identation in example in walkers.md. Thanks @bpaquet 
+- fixes #866 Fix identation in example in walkers.md. Thanks @bpaquet
 
 ### Upgrade Guide
 
-With #896 implemented, it breaks the API. Users code might need to change in order to move to this version. 
+With #896 implemented, it breaks the API. Users code might need to change in order to move to this version.
 
 
 ## 1.0.87 - 2023-09-08
@@ -147,7 +281,7 @@ With #896 implemented, it breaks the API. Users code might need to change in ord
 ### Changed
 
 - fixes #827 Stops unevaluatedProperties and unevaluatedItems being applied recursively. Thanks @aznan2
-- fixes #834 Always normalize uri keys of JsonSchemaFactory.jsonMetaSchemas on both read and write. Thanks @stacywsmith 
+- fixes #834 Always normalize uri keys of JsonSchemaFactory.jsonMetaSchemas on both read and write. Thanks @stacywsmith
 
 
 ## 1.0.85 - 2023-06-22
@@ -229,7 +363,7 @@ With #896 implemented, it breaks the API. Users code might need to change in ord
 
 - fixes #731 Improves performance. Thanks @fdutton
 - fixes #730 Removes need for network access when executing unit-tests. Thanks @fdutton
-- fixes #728 Adds explicit Java module descriptor for JDK9+. Thanks @aalmiray 
+- fixes #728 Adds explicit Java module descriptor for JDK9+. Thanks @aalmiray
 - fixes #725 custom uri fetcher doc. Thanks @michapojo
 - update the contributors and sponsors
 - fixes #720 Produces validation messages when oneOf has no valid schemas. Thanks @fdutton
@@ -287,7 +421,7 @@ With #896 implemented, it breaks the API. Users code might need to change in ord
 ### Changed
 
 - update the README.md to indicate that 202012 version is only partially supported.
-- fixes #668 handle references to yaml sub-schemas. Thanks @danfelicetta-RL 
+- fixes #668 handle references to yaml sub-schemas. Thanks @danfelicetta-RL
 - fixes #664 Provide/unify schema path for applicator schemas. Thanks @htdan
 - fixes #666 Clarify usage of Apache commons lang in README.md. Thanks @loadedice
 - fixes #663 Use full schema path to look up type validators for anyOf operator. Thanks @pshevche
@@ -492,7 +626,7 @@ With #896 implemented, it breaks the API. Users code might need to change in ord
 
 ### Changed
 
-- fixes #456 OneOf only validate the first sub schema. This was a defect introduced in 1.0.58 and everyone should upgrade to 1.0.62 if you are using 1.0.58 to 1.0.61. 
+- fixes #456 OneOf only validate the first sub schema. This was a defect introduced in 1.0.58 and everyone should upgrade to 1.0.62 if you are using 1.0.58 to 1.0.61.
 
 ## 1.0.61 - 2021-10-09
 
@@ -522,7 +656,7 @@ With #896 implemented, it breaks the API. Users code might need to change in ord
 ## 1.0.58 - 2021-08-23
 
 ### Added
-- 
+-
 - fixes #439 add i18n support for ValidationMessage. Thanks @leaves615
 - fixes #438 Adding custom message support in the schema. Thanks @adilath18
 
@@ -607,7 +741,7 @@ With #896 implemented, it breaks the API. Users code might need to change in ord
 - fixes #387 Resolve the test case errors for TypeFactoryTest
 - fixes #385 Fixing concurrency and compilation issues. Thanks @prashanthjos
 - fixes #383 Nested oneOf gives incorrect validation error. Thanks @JonasProgrammer
-- fixes #379 Add lossless narrowing convertion. Thanks @hkupty 
+- fixes #379 Add lossless narrowing convertion. Thanks @hkupty
 - fixes #378 Upgrade Jackson to 2.12.1 and Undertow to 2.2.4.Final
 
 ## 1.0.49 - 2021-02-17
@@ -805,7 +939,7 @@ With #896 implemented, it breaks the API. Users code might need to change in ord
 
 ### Changed
 
-- Update description in pom.xml to match readme.md. Thanks @reftel 
+- Update description in pom.xml to match readme.md. Thanks @reftel
 - fixes #232 update meta schema URI to https
 - fixes #229 move the remotes to resource from draftv4
 - fixes #228 support boolean schema in the dependencies validator
@@ -1182,7 +1316,7 @@ With #896 implemented, it breaks the API. Users code might need to change in ord
 
 ### Changed
 - Fixes #50 Support custom meta schemas with custom keywords and formats. Thanks @kkalass
-- Fixes #49 Use LinkedHashSets for ValidationMessages. Thanks @ehrmann 
+- Fixes #49 Use LinkedHashSets for ValidationMessages. Thanks @ehrmann
 - Fixes #48 Remove unnecessary todo. Thanks @ehrmann
 - Fixes #47 Change access modifiers in ValidationMessage. Thanks @ehrmann
 - Fixes #45 Added test case for loading schemas from classpath. Thanks @kenwa
@@ -1190,7 +1324,7 @@ With #896 implemented, it breaks the API. Users code might need to change in ord
 
 ## 0.1.11 - 2017-10-18
 ### Added
-- Fixes #43 Load reference schemas from classpath is supported. Thanks @kenwa 
+- Fixes #43 Load reference schemas from classpath is supported. Thanks @kenwa
 
 ### Changed
 

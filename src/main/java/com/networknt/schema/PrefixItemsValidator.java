@@ -44,10 +44,9 @@ public class PrefixItemsValidator extends BaseJsonValidator {
     public PrefixItemsValidator(SchemaLocation schemaLocation, JsonNodePath evaluationPath, JsonNode schemaNode, JsonSchema parentSchema, ValidationContext validationContext) {
         super(schemaLocation, evaluationPath, schemaNode, parentSchema, ValidatorTypeCode.PREFIX_ITEMS, validationContext);
 
-        this.tupleSchema = new ArrayList<>();
-
-        if (schemaNode instanceof ArrayNode && 0 < schemaNode.size()) {
+        if (schemaNode instanceof ArrayNode && !schemaNode.isEmpty()) {
             int i = 0;
+            this.tupleSchema = new ArrayList<>(schemaNode.size());
             for (JsonNode s : schemaNode) {
                 this.tupleSchema.add(validationContext.newSchema(schemaLocation.append(i), evaluationPath.append(i), s,
                         parentSchema));
@@ -60,7 +59,7 @@ public class PrefixItemsValidator extends BaseJsonValidator {
 
     @Override
     public Set<ValidationMessage> validate(ExecutionContext executionContext, JsonNode node, JsonNode rootNode, JsonNodePath instanceLocation) {
-        debug(logger, node, rootNode, instanceLocation);
+        debug(logger, executionContext, node, rootNode, instanceLocation);
         // ignores non-arrays
         if (node.isArray()) {
             SetView<ValidationMessage> errors = null;

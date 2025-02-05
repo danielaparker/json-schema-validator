@@ -5,11 +5,12 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-public class Issue604Test {
+class Issue604Test {
     @Test
-    public void failure() {
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setApplyDefaultsStrategy(new ApplyDefaultsStrategy(true, false, false));
+    void failure() {
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder()
+                .applyDefaultsStrategy(new ApplyDefaultsStrategy(true, false, false))
+                .build();
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
         JsonSchema schema = factory.getSchema("{ \"type\": \"object\", \"properties\": { \"foo\": { \"type\": \"object\", \"properties\": { \"bar\": { \"type\": \"boolean\", \"default\": false } } } } }", config);
         ObjectMapper objectMapper = new ObjectMapper();

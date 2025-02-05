@@ -12,10 +12,10 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class Issue366FailFastTest {
+class Issue366FailFastTest {
 
     @BeforeEach
-    public void setup() throws IOException {
+    void setup() throws IOException {
         setupSchema();
     }
 
@@ -23,14 +23,12 @@ public class Issue366FailFastTest {
     ObjectMapper objectMapper = new ObjectMapper();
 
     private void setupSchema() throws IOException {
-
-        SchemaValidatorsConfig schemaValidatorsConfig = new SchemaValidatorsConfig();
-        schemaValidatorsConfig.setFailFast(true);
+        SchemaValidatorsConfig schemaValidatorsConfig = SchemaValidatorsConfig.builder()
+                .failFast(true)
+                .typeLoose(false)
+                .build();
         JsonSchemaFactory schemaFactory = JsonSchemaFactory
-                .builder(JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7)).jsonMapper(objectMapper).build();
-
-        schemaValidatorsConfig.setTypeLoose(false);
-
+                .builder(JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7)).build();
         SchemaLocation uri = getSchema();
 
         InputStream in = getClass().getResourceAsStream("/schema/issue366_schema.json");
@@ -45,7 +43,7 @@ public class Issue366FailFastTest {
     }
 
     @Test
-    public void firstOneValid() throws Exception {
+    void firstOneValid() throws Exception {
         String dataPath = "/data/issue366.json";
 
         InputStream dataInputStream = getClass().getResourceAsStream(dataPath);
@@ -58,7 +56,7 @@ public class Issue366FailFastTest {
     }
 
     @Test
-    public void secondOneValid() throws Exception {
+    void secondOneValid() throws Exception {
         String dataPath = "/data/issue366.json";
 
         InputStream dataInputStream = getClass().getResourceAsStream(dataPath);
@@ -71,7 +69,7 @@ public class Issue366FailFastTest {
     }
 
     @Test
-    public void bothValid() throws Exception {
+    void bothValid() throws Exception {
         String dataPath = "/data/issue366.json";
 
         InputStream dataInputStream = getClass().getResourceAsStream(dataPath);
@@ -83,7 +81,7 @@ public class Issue366FailFastTest {
     }
 
     @Test
-    public void neitherValid() throws Exception {
+    void neitherValid() throws Exception {
         String dataPath = "/data/issue366.json";
 
         InputStream dataInputStream = getClass().getResourceAsStream(dataPath);

@@ -14,12 +14,10 @@ public class IriReferenceFormat extends AbstractRFC3986Format {
                 return false;
             }
         }
-        String query = uri.getQuery();
+        String query = uri.getRawQuery();
         if (query != null) {
             // [ and ] must be percent encoded
-            if (query.indexOf('[') != -1 || query.indexOf(']') != -1) {
-                return false;
-            }
+	        return query.indexOf('[') == -1 && query.indexOf(']') == -1;
         }
         return true;
     }

@@ -9,7 +9,6 @@ import com.networknt.schema.JsonType;
 import com.networknt.schema.PathType;
 import com.networknt.schema.SchemaValidatorsConfig;
 import com.networknt.schema.SpecVersion.VersionFlag;
-import com.networknt.schema.SpecVersionDetector;
 import com.networknt.schema.TypeFactory;
 import com.networknt.schema.ValidationContext;
 
@@ -54,16 +53,13 @@ public class JsonNodeUtil {
 
     public static boolean isNodeNullable(JsonNode schema){
         JsonNode nullable = schema.get(NULLABLE);
-        if (nullable != null && nullable.asBoolean()) {
-            return true;
-        }
-        return false;
+	    return nullable != null && nullable.asBoolean();
     }
 
     //Check to see if a JsonNode is nullable with checking the isHandleNullableField
     public static boolean isNodeNullable(JsonNode schema, SchemaValidatorsConfig config){
         // check if the parent schema declares the fields as nullable
-        if (config.isHandleNullableField()) {
+        if (config.isNullableKeywordEnabled()) {
             return isNodeNullable(schema);
         }
         return false;
@@ -88,10 +84,9 @@ public class JsonNodeUtil {
             }
 
             if (nodeType == JsonType.NULL) {
-                if (parentSchema != null) {
+                if (parentSchema != null && config.isNullableKeywordEnabled()) {
                     JsonSchema grandParentSchema = parentSchema.getParentSchema();
-                    if (grandParentSchema != null
-                            && JsonNodeUtil.isNodeNullable(grandParentSchema.getSchemaNode(), config)
+                    if (grandParentSchema != null && JsonNodeUtil.isNodeNullable(grandParentSchema.getSchemaNode())
                             || JsonNodeUtil.isNodeNullable(parentSchema.getSchemaNode())) {
                         return true;
                     }
@@ -110,17 +105,11 @@ public class JsonNodeUtil {
                 }
                 if (nodeType == JsonType.STRING) {
                     if (schemaType == JsonType.INTEGER) {
-                        if (StringChecker.isInteger(node.textValue())) {
-                            return true;
-                        }
+	                    return StringChecker.isInteger(node.textValue());
                     } else if (schemaType == JsonType.BOOLEAN) {
-                        if (StringChecker.isBoolean(node.textValue())) {
-                            return true;
-                        }
+	                    return StringChecker.isBoolean(node.textValue());
                     } else if (schemaType == JsonType.NUMBER) {
-                        if (StringChecker.isNumeric(node.textValue())) {
-                            return true;
-                        }
+	                    return StringChecker.isNumeric(node.textValue());
                     }
                 }
             }
@@ -131,10 +120,7 @@ public class JsonNodeUtil {
     }
 
     private static long detectVersion(ValidationContext validationContext) {
-        String metaSchema = validationContext.getMetaSchema().getIri();
-        return SpecVersionDetector.detectOptionalVersion(metaSchema)
-            .orElse(VersionFlag.V4)
-            .getVersionFlagValue();
+        return validationContext.activeDialect().orElse(VersionFlag.V4).getVersionFlagValue();
     }
 
     /**

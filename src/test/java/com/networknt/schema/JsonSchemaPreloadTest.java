@@ -23,20 +23,20 @@ import com.networknt.schema.SpecVersion.VersionFlag;
 /**
  * Test to control preloading of schemas.
  */
-public class JsonSchemaPreloadTest {
+class JsonSchemaPreloadTest {
     @Test
     void cacheRefsFalse() {
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V7);
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setCacheRefs(false);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder().cacheRefs(false).build();
         factory.getSchema(SchemaLocation.of("classpath:/issues/1016/schema.json"), config);
     }
 
     @Test
     void preloadSchemaRefMaxNestingDepth() {
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V7);
-        SchemaValidatorsConfig config = new SchemaValidatorsConfig();
-        config.setPreloadJsonSchemaRefMaxNestingDepth(20);
+        SchemaValidatorsConfig config = SchemaValidatorsConfig.builder()
+                .preloadJsonSchemaRefMaxNestingDepth(20)
+                .build();
         factory.getSchema(SchemaLocation.of("classpath:/issues/1016/schema.json"), config);
     }
 }

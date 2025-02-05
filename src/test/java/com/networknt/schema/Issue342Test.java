@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class Issue342Test {
+class Issue342Test {
     protected JsonSchema getJsonSchemaFromStreamContentV7(InputStream schemaContent) {
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
         return factory.getSchema(schemaContent);
@@ -22,7 +22,7 @@ public class Issue342Test {
     }
 
     @Test
-    public void propertyNameEnumShouldFailV7() throws Exception {
+    void propertyNameEnumShouldFailV7() throws Exception {
         String schemaPath = "/schema/issue342-v7.json";
         String dataPath = "/data/issue342.json";
         InputStream schemaInputStream = getClass().getResourceAsStream(schemaPath);
@@ -33,6 +33,6 @@ public class Issue342Test {
         Assertions.assertEquals(1, errors.size());
         final ValidationMessage error = errors.iterator().next();
         Assertions.assertEquals("$", error.getInstanceLocation().toString());
-        Assertions.assertEquals("$: property 'z' name is not valid: does not have a value in the enumeration [a, b, c]", error.getMessage());
+        Assertions.assertEquals("$: property 'z' name is not valid: does not have a value in the enumeration [\"a\", \"b\", \"c\"]", error.getMessage());
     }
 }

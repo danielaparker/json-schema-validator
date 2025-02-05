@@ -44,8 +44,7 @@ public class UnevaluatedItemsValidator extends BaseJsonValidator {
             JsonSchema parentSchema, ValidationContext validationContext) {
         super(schemaLocation, evaluationPath, schemaNode, parentSchema, ValidatorTypeCode.UNEVALUATED_ITEMS,
                 validationContext);
-        isMinV202012 = MinV202012.getVersions().contains(SpecVersionDetector
-                .detectOptionalVersion(validationContext.getMetaSchema().getIri()).orElse(DEFAULT_VERSION));
+        isMinV202012 = MinV202012.getVersions().contains(validationContext.activeDialect().orElse(DEFAULT_VERSION));
         if (schemaNode.isObject() || schemaNode.isBoolean()) {
             this.schema = validationContext.newSchema(schemaLocation, evaluationPath, schemaNode, parentSchema);
         } else {
@@ -59,7 +58,7 @@ public class UnevaluatedItemsValidator extends BaseJsonValidator {
             return Collections.emptySet();
         }
 
-        debug(logger, node, rootNode, instanceLocation);
+        debug(logger, executionContext, node, rootNode, instanceLocation);
         /*
          * Keywords renamed in 2020-12
          * 
@@ -76,9 +75,7 @@ public class UnevaluatedItemsValidator extends BaseJsonValidator {
         boolean evaluated = false;
 
         // Get all the valid adjacent annotations
-        Predicate<JsonNodeAnnotation> validEvaluationPathFilter = a -> {
-            return executionContext.getResults().isValid(instanceLocation, a.getEvaluationPath());
-        };
+        Predicate<JsonNodeAnnotation> validEvaluationPathFilter = a -> executionContext.getResults().isValid(instanceLocation, a.getEvaluationPath());
 
         Predicate<JsonNodeAnnotation> adjacentEvaluationPathFilter = a -> a.getEvaluationPath()
                 .startsWith(this.evaluationPath.getParent());
@@ -91,7 +88,7 @@ public class UnevaluatedItemsValidator extends BaseJsonValidator {
             valid = true;
             // No need to actually evaluate since the schema is true but if there are any
             // items the annotation needs to be set
-            if (node.size() > 0) {
+            if (!node.isEmpty()) {
                 evaluated = true;
             }
         } else {

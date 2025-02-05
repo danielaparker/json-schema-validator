@@ -65,7 +65,7 @@ public class ItemsValidator202012 extends BaseJsonValidator {
     @Override
     public Set<ValidationMessage> validate(ExecutionContext executionContext, JsonNode node, JsonNode rootNode,
             JsonNodePath instanceLocation) {
-        debug(logger, node, rootNode, instanceLocation);
+        debug(logger, executionContext, node, rootNode, instanceLocation);
 
         // ignores non-arrays
         if (node.isArray()) {
@@ -146,7 +146,7 @@ public class ItemsValidator202012 extends BaseJsonValidator {
                 }
             }
         } else {
-            // If the node is not an ArrayNode, eg. ObjectNode or null then the instance is null.
+            // If the node is not an ArrayNode, e.g. ObjectNode or null then the instance is null.
             // The instance location starts at the end of the prefix count.
             walkSchema(executionContext, this.schema, null, rootNode, instanceLocation.append(this.prefixCount),
                     shouldValidateSchema, validationMessages);

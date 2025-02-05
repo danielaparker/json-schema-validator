@@ -8,20 +8,20 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.Set;
 
-public class UnknownMetaSchemaTest {
+class UnknownMetaSchemaTest {
 
-    private String schema1 = "{\"$schema\":\"http://json-schema.org/draft-07/schema\",\"title\":\"thingModel\",\"description\":\"description of thing\",\"type\":\"object\",\"properties\":{\"data\":{\"type\":\"integer\"},\"required\":[\"data\"]}}";
-    private String schema2 = "{\"$schema\":\"https://json-schema.org/draft-07/schema\",\"title\":\"thingModel\",\"description\":\"description of thing\",\"type\":\"object\",\"properties\":{\"data\":{\"type\":\"integer\"},\"required\":[\"data\"]}}";
-    private String schema3 = "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"title\":\"thingModel\",\"description\":\"description of thing\",\"type\":\"object\",\"properties\":{\"data\":{\"type\":\"integer\"},\"required\":[\"data\"]}}";
+    private final String schema1 = "{\"$schema\":\"http://json-schema.org/draft-07/schema\",\"title\":\"thingModel\",\"description\":\"description of thing\",\"type\":\"object\",\"properties\":{\"data\":{\"type\":\"integer\"},\"required\":[\"data\"]}}";
+    private final String schema2 = "{\"$schema\":\"https://json-schema.org/draft-07/schema\",\"title\":\"thingModel\",\"description\":\"description of thing\",\"type\":\"object\",\"properties\":{\"data\":{\"type\":\"integer\"},\"required\":[\"data\"]}}";
+    private final String schema3 = "{\"$schema\":\"http://json-schema.org/draft-07/schema#\",\"title\":\"thingModel\",\"description\":\"description of thing\",\"type\":\"object\",\"properties\":{\"data\":{\"type\":\"integer\"},\"required\":[\"data\"]}}";
 
-    private String json = "{\"data\":1}";
+    private final String json = "{\"data\":1}";
 
     @Test
-    public void testSchema1() throws IOException {
+    void testSchema1() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(this.json);
 
-        JsonSchemaFactory factory = JsonSchemaFactory.builder(JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7)).jsonMapper(mapper).build();
+        JsonSchemaFactory factory = JsonSchemaFactory.builder(JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7)).build();
         JsonSchema jsonSchema = factory.getSchema(schema1);
 
         Set<ValidationMessage> errors = jsonSchema.validate(jsonNode);
@@ -31,11 +31,11 @@ public class UnknownMetaSchemaTest {
     }
 
     @Test
-    public void testSchema2() throws IOException {
+    void testSchema2() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(this.json);
 
-        JsonSchemaFactory factory = JsonSchemaFactory.builder(JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7)).jsonMapper(mapper).build();
+        JsonSchemaFactory factory = JsonSchemaFactory.builder(JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7)).build();
         JsonSchema jsonSchema = factory.getSchema(schema2);
 
         Set<ValidationMessage> errors = jsonSchema.validate(jsonNode);
@@ -44,11 +44,11 @@ public class UnknownMetaSchemaTest {
         }
     }
     @Test
-    public void testSchema3() throws IOException {
+    void testSchema3() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(this.json);
 
-        JsonSchemaFactory factory = JsonSchemaFactory.builder(JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7)).jsonMapper(mapper).build();
+        JsonSchemaFactory factory = JsonSchemaFactory.builder(JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7)).build();
         JsonSchema jsonSchema = factory.getSchema(schema3);
 
         Set<ValidationMessage> errors = jsonSchema.validate(jsonNode);
@@ -58,7 +58,7 @@ public class UnknownMetaSchemaTest {
     }
 
     @Test
-    public void testNormalize() throws JsonSchemaException {
+    void testNormalize() throws JsonSchemaException {
 
         String uri01 = "http://json-schema.org/draft-07/schema";
         String uri02 = "http://json-schema.org/draft-07/schema#";
