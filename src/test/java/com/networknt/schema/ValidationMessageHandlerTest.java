@@ -89,4 +89,29 @@ class ValidationMessageHandlerTest {
         assertEquals("关键字1必须为字符串", messages.get(0).getMessage());
     }
 
+    @Test
+    void errorMessageFormat() {
+        String schemaData = "{"
+          +   "  \"type\": \"object\","
+          +   "  \"properties\": {"
+          +   "    \"dateTime\": {"
+          +   "      \"type\": \"string\","
+          +   "      \"format\": \"date\","
+          +   "      \"errorMessage\": {"
+          +   "        \"format:date\": \"Keep date format yyyy-mm-dd\""
+          +   "      }"
+          +   "    }
+          +   "  }"
+          +   "}";
+        String inputData = "{\r\n"
+                + "  \"dateTime\": \"05/13/1955\"\r\n"
+                + "}";
+        JsonSchema schema = JsonSchemaFactory.getInstance(VersionFlag.V202012).getSchema(schemaData,
+                SchemaValidatorsConfig.builder().errorMessageKeyword("errorMessage").build());
+        List<ValidationMessage> messages = schema.validate(inputData, InputFormat.JSON).stream().collect(Collectors.toList());
+        assertFalse(messages.isEmpty());
+        assertEquals("/dateTime", messages.get(0).getInstanceLocation().toString());
+        assertEquals("Keep date format yyyy-mm-dd", messages.get(0).getMessage());
+    }
+
 }
